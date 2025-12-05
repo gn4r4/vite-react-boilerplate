@@ -10,33 +10,232 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UsersIndexRouteImport } from './routes/users/index'
+import { Route as GenresIndexRouteImport } from './routes/genres/index'
+import { Route as CategoriesIndexRouteImport } from './routes/categories/index'
+import { Route as BooksIndexRouteImport } from './routes/books/index'
+import { Route as AuthorsIndexRouteImport } from './routes/authors/index'
+import { Route as UsersNewRouteImport } from './routes/users/new'
+import { Route as UsersUserIdRouteImport } from './routes/users/$userId'
+import { Route as GenresNewRouteImport } from './routes/genres/new'
+import { Route as GenresGenreIdRouteImport } from './routes/genres/$genreId'
+import { Route as CategoriesNewRouteImport } from './routes/categories/new'
+import { Route as CategoriesCategoryIdRouteImport } from './routes/categories/$categoryId'
+import { Route as BooksNewRouteImport } from './routes/books/new'
+import { Route as BooksBookIdRouteImport } from './routes/books/$bookId'
+import { Route as AuthorsNewRouteImport } from './routes/authors/new'
+import { Route as AuthorsAuthorIdRouteImport } from './routes/authors/$authorId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UsersIndexRoute = UsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GenresIndexRoute = GenresIndexRouteImport.update({
+  id: '/genres/',
+  path: '/genres/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategoriesIndexRoute = CategoriesIndexRouteImport.update({
+  id: '/categories/',
+  path: '/categories/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BooksIndexRoute = BooksIndexRouteImport.update({
+  id: '/books/',
+  path: '/books/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthorsIndexRoute = AuthorsIndexRouteImport.update({
+  id: '/authors/',
+  path: '/authors/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsersNewRoute = UsersNewRouteImport.update({
+  id: '/users/new',
+  path: '/users/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsersUserIdRoute = UsersUserIdRouteImport.update({
+  id: '/users/$userId',
+  path: '/users/$userId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GenresNewRoute = GenresNewRouteImport.update({
+  id: '/genres/new',
+  path: '/genres/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GenresGenreIdRoute = GenresGenreIdRouteImport.update({
+  id: '/genres/$genreId',
+  path: '/genres/$genreId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategoriesNewRoute = CategoriesNewRouteImport.update({
+  id: '/categories/new',
+  path: '/categories/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CategoriesCategoryIdRoute = CategoriesCategoryIdRouteImport.update({
+  id: '/categories/$categoryId',
+  path: '/categories/$categoryId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BooksNewRoute = BooksNewRouteImport.update({
+  id: '/books/new',
+  path: '/books/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BooksBookIdRoute = BooksBookIdRouteImport.update({
+  id: '/books/$bookId',
+  path: '/books/$bookId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthorsNewRoute = AuthorsNewRouteImport.update({
+  id: '/authors/new',
+  path: '/authors/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthorsAuthorIdRoute = AuthorsAuthorIdRouteImport.update({
+  id: '/authors/$authorId',
+  path: '/authors/$authorId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/authors/$authorId': typeof AuthorsAuthorIdRoute
+  '/authors/new': typeof AuthorsNewRoute
+  '/books/$bookId': typeof BooksBookIdRoute
+  '/books/new': typeof BooksNewRoute
+  '/categories/$categoryId': typeof CategoriesCategoryIdRoute
+  '/categories/new': typeof CategoriesNewRoute
+  '/genres/$genreId': typeof GenresGenreIdRoute
+  '/genres/new': typeof GenresNewRoute
+  '/users/$userId': typeof UsersUserIdRoute
+  '/users/new': typeof UsersNewRoute
+  '/authors': typeof AuthorsIndexRoute
+  '/books': typeof BooksIndexRoute
+  '/categories': typeof CategoriesIndexRoute
+  '/genres': typeof GenresIndexRoute
+  '/users': typeof UsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/authors/$authorId': typeof AuthorsAuthorIdRoute
+  '/authors/new': typeof AuthorsNewRoute
+  '/books/$bookId': typeof BooksBookIdRoute
+  '/books/new': typeof BooksNewRoute
+  '/categories/$categoryId': typeof CategoriesCategoryIdRoute
+  '/categories/new': typeof CategoriesNewRoute
+  '/genres/$genreId': typeof GenresGenreIdRoute
+  '/genres/new': typeof GenresNewRoute
+  '/users/$userId': typeof UsersUserIdRoute
+  '/users/new': typeof UsersNewRoute
+  '/authors': typeof AuthorsIndexRoute
+  '/books': typeof BooksIndexRoute
+  '/categories': typeof CategoriesIndexRoute
+  '/genres': typeof GenresIndexRoute
+  '/users': typeof UsersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/authors/$authorId': typeof AuthorsAuthorIdRoute
+  '/authors/new': typeof AuthorsNewRoute
+  '/books/$bookId': typeof BooksBookIdRoute
+  '/books/new': typeof BooksNewRoute
+  '/categories/$categoryId': typeof CategoriesCategoryIdRoute
+  '/categories/new': typeof CategoriesNewRoute
+  '/genres/$genreId': typeof GenresGenreIdRoute
+  '/genres/new': typeof GenresNewRoute
+  '/users/$userId': typeof UsersUserIdRoute
+  '/users/new': typeof UsersNewRoute
+  '/authors/': typeof AuthorsIndexRoute
+  '/books/': typeof BooksIndexRoute
+  '/categories/': typeof CategoriesIndexRoute
+  '/genres/': typeof GenresIndexRoute
+  '/users/': typeof UsersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/authors/$authorId'
+    | '/authors/new'
+    | '/books/$bookId'
+    | '/books/new'
+    | '/categories/$categoryId'
+    | '/categories/new'
+    | '/genres/$genreId'
+    | '/genres/new'
+    | '/users/$userId'
+    | '/users/new'
+    | '/authors'
+    | '/books'
+    | '/categories'
+    | '/genres'
+    | '/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/authors/$authorId'
+    | '/authors/new'
+    | '/books/$bookId'
+    | '/books/new'
+    | '/categories/$categoryId'
+    | '/categories/new'
+    | '/genres/$genreId'
+    | '/genres/new'
+    | '/users/$userId'
+    | '/users/new'
+    | '/authors'
+    | '/books'
+    | '/categories'
+    | '/genres'
+    | '/users'
+  id:
+    | '__root__'
+    | '/'
+    | '/authors/$authorId'
+    | '/authors/new'
+    | '/books/$bookId'
+    | '/books/new'
+    | '/categories/$categoryId'
+    | '/categories/new'
+    | '/genres/$genreId'
+    | '/genres/new'
+    | '/users/$userId'
+    | '/users/new'
+    | '/authors/'
+    | '/books/'
+    | '/categories/'
+    | '/genres/'
+    | '/users/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthorsAuthorIdRoute: typeof AuthorsAuthorIdRoute
+  AuthorsNewRoute: typeof AuthorsNewRoute
+  BooksBookIdRoute: typeof BooksBookIdRoute
+  BooksNewRoute: typeof BooksNewRoute
+  CategoriesCategoryIdRoute: typeof CategoriesCategoryIdRoute
+  CategoriesNewRoute: typeof CategoriesNewRoute
+  GenresGenreIdRoute: typeof GenresGenreIdRoute
+  GenresNewRoute: typeof GenresNewRoute
+  UsersUserIdRoute: typeof UsersUserIdRoute
+  UsersNewRoute: typeof UsersNewRoute
+  AuthorsIndexRoute: typeof AuthorsIndexRoute
+  BooksIndexRoute: typeof BooksIndexRoute
+  CategoriesIndexRoute: typeof CategoriesIndexRoute
+  GenresIndexRoute: typeof GenresIndexRoute
+  UsersIndexRoute: typeof UsersIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +247,131 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/users/': {
+      id: '/users/'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/genres/': {
+      id: '/genres/'
+      path: '/genres'
+      fullPath: '/genres'
+      preLoaderRoute: typeof GenresIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/categories/': {
+      id: '/categories/'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof CategoriesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/books/': {
+      id: '/books/'
+      path: '/books'
+      fullPath: '/books'
+      preLoaderRoute: typeof BooksIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/authors/': {
+      id: '/authors/'
+      path: '/authors'
+      fullPath: '/authors'
+      preLoaderRoute: typeof AuthorsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/users/new': {
+      id: '/users/new'
+      path: '/users/new'
+      fullPath: '/users/new'
+      preLoaderRoute: typeof UsersNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/users/$userId': {
+      id: '/users/$userId'
+      path: '/users/$userId'
+      fullPath: '/users/$userId'
+      preLoaderRoute: typeof UsersUserIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/genres/new': {
+      id: '/genres/new'
+      path: '/genres/new'
+      fullPath: '/genres/new'
+      preLoaderRoute: typeof GenresNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/genres/$genreId': {
+      id: '/genres/$genreId'
+      path: '/genres/$genreId'
+      fullPath: '/genres/$genreId'
+      preLoaderRoute: typeof GenresGenreIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/categories/new': {
+      id: '/categories/new'
+      path: '/categories/new'
+      fullPath: '/categories/new'
+      preLoaderRoute: typeof CategoriesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/categories/$categoryId': {
+      id: '/categories/$categoryId'
+      path: '/categories/$categoryId'
+      fullPath: '/categories/$categoryId'
+      preLoaderRoute: typeof CategoriesCategoryIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/books/new': {
+      id: '/books/new'
+      path: '/books/new'
+      fullPath: '/books/new'
+      preLoaderRoute: typeof BooksNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/books/$bookId': {
+      id: '/books/$bookId'
+      path: '/books/$bookId'
+      fullPath: '/books/$bookId'
+      preLoaderRoute: typeof BooksBookIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/authors/new': {
+      id: '/authors/new'
+      path: '/authors/new'
+      fullPath: '/authors/new'
+      preLoaderRoute: typeof AuthorsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/authors/$authorId': {
+      id: '/authors/$authorId'
+      path: '/authors/$authorId'
+      fullPath: '/authors/$authorId'
+      preLoaderRoute: typeof AuthorsAuthorIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthorsAuthorIdRoute: AuthorsAuthorIdRoute,
+  AuthorsNewRoute: AuthorsNewRoute,
+  BooksBookIdRoute: BooksBookIdRoute,
+  BooksNewRoute: BooksNewRoute,
+  CategoriesCategoryIdRoute: CategoriesCategoryIdRoute,
+  CategoriesNewRoute: CategoriesNewRoute,
+  GenresGenreIdRoute: GenresGenreIdRoute,
+  GenresNewRoute: GenresNewRoute,
+  UsersUserIdRoute: UsersUserIdRoute,
+  UsersNewRoute: UsersNewRoute,
+  AuthorsIndexRoute: AuthorsIndexRoute,
+  BooksIndexRoute: BooksIndexRoute,
+  CategoriesIndexRoute: CategoriesIndexRoute,
+  GenresIndexRoute: GenresIndexRoute,
+  UsersIndexRoute: UsersIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
