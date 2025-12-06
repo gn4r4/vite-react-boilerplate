@@ -1,6 +1,6 @@
 import axios from 'axios';
+import { useAuthStore } from '@/store/authStore'; // Імпорт стору
 
-// Створення окремого інстансу Axios
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
@@ -8,21 +8,29 @@ const apiClient = axios.create({
   },
 });
 
-// Якщо токен доступний у змінній середовища -- додаємо в Authorization
-const token = import.meta.env.VITE_API_AUTH_TOKEN;
-if (token) {
-  apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-}
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = useAuthStore.getState().token;
 
-// Інтерцептор для відповіді (обробка помилок)
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Опціонально: перехоплювач для 401 помилки (якщо токен протух - розлогінити)
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Тут можна додати глобальну обробку помилок
-    console.error('API Error:', error.response?.data || error.message);
-    // Можна також виводити повідомлення користувачу через toast
-    // toast.error(error.response?.data?.message || 'Unknown error');
+    if (error.response?.status === 401) {
+      useAuthStore.getState().logout();
+      // Можна додати редірект на логін, якщо потрібно
+    }
     return Promise.reject(error);
   }
 );
+
 export default apiClient;
