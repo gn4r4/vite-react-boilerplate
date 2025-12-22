@@ -60,9 +60,9 @@ export const EditBookPage = () => {
         id: Number(bookId),
         data: {
             title: formData.title,
-            categoryId: Number(formData.categoryId),
-            genreId: Number(formData.genreId),
-            authorIds: formData.authorIds.map(Number),
+            id_category: Number(formData.categoryId), 
+            id_genre: Number(formData.genreId),
+            id_author: formData.authorIds.map(Number),
         }
     });
   };
@@ -201,20 +201,20 @@ export const EditBookPage = () => {
         </div>
 
         {/* Кнопки */}
-        <div className="flex justify-end gap-3 pt-4 border-t">
-            <button
-                type="button"
-                onClick={() => navigate({ to: '/books' })}
-                className="px-6 py-2 rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 transition font-medium"
-            >
-                Скасувати
-            </button>
-            <button
-                type="submit"
-                className="px-6 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition font-medium"
-            >
-                Зберегти зміни
-            </button>
+        <div className="flex gap-3 pt-4">
+          <button 
+            type="submit" 
+            className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            Оновити
+          </button>
+          <button 
+            type="button" 
+            onClick={() => navigate({ to: '/books' })} 
+            className="flex-1 bg-gray-300 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-400 transition-colors font-medium"
+          >
+            Скасувати
+          </button>
         </div>
       </form>
     </div>

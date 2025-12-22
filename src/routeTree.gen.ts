@@ -12,16 +12,49 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsersIndexRouteImport } from './routes/users/index'
+import { Route as ShelvesIndexRouteImport } from './routes/shelves/index'
+import { Route as ReadersIndexRouteImport } from './routes/readers/index'
+import { Route as PublishersIndexRouteImport } from './routes/publishers/index'
+import { Route as PositionsIndexRouteImport } from './routes/positions/index'
+import { Route as OrdersIndexRouteImport } from './routes/orders/index'
+import { Route as LocationsIndexRouteImport } from './routes/locations/index'
+import { Route as LendingsIndexRouteImport } from './routes/lendings/index'
 import { Route as GenresIndexRouteImport } from './routes/genres/index'
+import { Route as EmployeesIndexRouteImport } from './routes/employees/index'
+import { Route as EditionsIndexRouteImport } from './routes/editions/index'
+import { Route as CopybooksIndexRouteImport } from './routes/copybooks/index'
 import { Route as CategoriesIndexRouteImport } from './routes/categories/index'
+import { Route as CabinetsIndexRouteImport } from './routes/cabinets/index'
 import { Route as BooksIndexRouteImport } from './routes/books/index'
 import { Route as AuthorsIndexRouteImport } from './routes/authors/index'
 import { Route as UsersNewRouteImport } from './routes/users/new'
 import { Route as UsersUserIdRouteImport } from './routes/users/$userId'
+import { Route as ShelvesNewRouteImport } from './routes/shelves/new'
+import { Route as ShelvesShelfIdRouteImport } from './routes/shelves/$shelfId'
+import { Route as ReadersNewRouteImport } from './routes/readers/new'
+import { Route as ReadersReaderIdRouteImport } from './routes/readers/$readerId'
+import { Route as PublishersNewRouteImport } from './routes/publishers/new'
+import { Route as PublishersPublisherIdRouteImport } from './routes/publishers/$publisherId'
+import { Route as PositionsNewRouteImport } from './routes/positions/new'
+import { Route as PositionsPositionIdRouteImport } from './routes/positions/$positionId'
+import { Route as OrdersNewRouteImport } from './routes/orders/new'
+import { Route as OrdersOrderIdRouteImport } from './routes/orders/$orderId'
+import { Route as LocationsNewRouteImport } from './routes/locations/new'
+import { Route as LocationsLendingIdRouteImport } from './routes/locations/$lendingId'
+import { Route as LendingsNewRouteImport } from './routes/lendings/new'
+import { Route as LendingsLendingIdRouteImport } from './routes/lendings/$lendingId'
 import { Route as GenresNewRouteImport } from './routes/genres/new'
 import { Route as GenresGenreIdRouteImport } from './routes/genres/$genreId'
+import { Route as EmployeesNewRouteImport } from './routes/employees/new'
+import { Route as EmployeesEmployeeIdRouteImport } from './routes/employees/$employeeId'
+import { Route as EditionsNewRouteImport } from './routes/editions/new'
+import { Route as EditionsEditionIdRouteImport } from './routes/editions/$editionId'
+import { Route as CopybooksNewRouteImport } from './routes/copybooks/new'
+import { Route as CopybooksCopybookIdRouteImport } from './routes/copybooks/$copybookId'
 import { Route as CategoriesNewRouteImport } from './routes/categories/new'
 import { Route as CategoriesCategoryIdRouteImport } from './routes/categories/$categoryId'
+import { Route as CabinetsNewRouteImport } from './routes/cabinets/new'
+import { Route as CabinetsCabinetIdRouteImport } from './routes/cabinets/$cabinetId'
 import { Route as BooksNewRouteImport } from './routes/books/new'
 import { Route as BooksBookIdRouteImport } from './routes/books/$bookId'
 import { Route as AuthorsNewRouteImport } from './routes/authors/new'
@@ -42,14 +75,69 @@ const UsersIndexRoute = UsersIndexRouteImport.update({
   path: '/users/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ShelvesIndexRoute = ShelvesIndexRouteImport.update({
+  id: '/shelves/',
+  path: '/shelves/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReadersIndexRoute = ReadersIndexRouteImport.update({
+  id: '/readers/',
+  path: '/readers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublishersIndexRoute = PublishersIndexRouteImport.update({
+  id: '/publishers/',
+  path: '/publishers/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PositionsIndexRoute = PositionsIndexRouteImport.update({
+  id: '/positions/',
+  path: '/positions/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersIndexRoute = OrdersIndexRouteImport.update({
+  id: '/orders/',
+  path: '/orders/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocationsIndexRoute = LocationsIndexRouteImport.update({
+  id: '/locations/',
+  path: '/locations/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LendingsIndexRoute = LendingsIndexRouteImport.update({
+  id: '/lendings/',
+  path: '/lendings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GenresIndexRoute = GenresIndexRouteImport.update({
   id: '/genres/',
   path: '/genres/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmployeesIndexRoute = EmployeesIndexRouteImport.update({
+  id: '/employees/',
+  path: '/employees/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditionsIndexRoute = EditionsIndexRouteImport.update({
+  id: '/editions/',
+  path: '/editions/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CopybooksIndexRoute = CopybooksIndexRouteImport.update({
+  id: '/copybooks/',
+  path: '/copybooks/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CategoriesIndexRoute = CategoriesIndexRouteImport.update({
   id: '/categories/',
   path: '/categories/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CabinetsIndexRoute = CabinetsIndexRouteImport.update({
+  id: '/cabinets/',
+  path: '/cabinets/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BooksIndexRoute = BooksIndexRouteImport.update({
@@ -72,6 +160,76 @@ const UsersUserIdRoute = UsersUserIdRouteImport.update({
   path: '/users/$userId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ShelvesNewRoute = ShelvesNewRouteImport.update({
+  id: '/shelves/new',
+  path: '/shelves/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShelvesShelfIdRoute = ShelvesShelfIdRouteImport.update({
+  id: '/shelves/$shelfId',
+  path: '/shelves/$shelfId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReadersNewRoute = ReadersNewRouteImport.update({
+  id: '/readers/new',
+  path: '/readers/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReadersReaderIdRoute = ReadersReaderIdRouteImport.update({
+  id: '/readers/$readerId',
+  path: '/readers/$readerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublishersNewRoute = PublishersNewRouteImport.update({
+  id: '/publishers/new',
+  path: '/publishers/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublishersPublisherIdRoute = PublishersPublisherIdRouteImport.update({
+  id: '/publishers/$publisherId',
+  path: '/publishers/$publisherId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PositionsNewRoute = PositionsNewRouteImport.update({
+  id: '/positions/new',
+  path: '/positions/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PositionsPositionIdRoute = PositionsPositionIdRouteImport.update({
+  id: '/positions/$positionId',
+  path: '/positions/$positionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersNewRoute = OrdersNewRouteImport.update({
+  id: '/orders/new',
+  path: '/orders/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrdersOrderIdRoute = OrdersOrderIdRouteImport.update({
+  id: '/orders/$orderId',
+  path: '/orders/$orderId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocationsNewRoute = LocationsNewRouteImport.update({
+  id: '/locations/new',
+  path: '/locations/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocationsLendingIdRoute = LocationsLendingIdRouteImport.update({
+  id: '/locations/$lendingId',
+  path: '/locations/$lendingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LendingsNewRoute = LendingsNewRouteImport.update({
+  id: '/lendings/new',
+  path: '/lendings/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LendingsLendingIdRoute = LendingsLendingIdRouteImport.update({
+  id: '/lendings/$lendingId',
+  path: '/lendings/$lendingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GenresNewRoute = GenresNewRouteImport.update({
   id: '/genres/new',
   path: '/genres/new',
@@ -82,6 +240,36 @@ const GenresGenreIdRoute = GenresGenreIdRouteImport.update({
   path: '/genres/$genreId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmployeesNewRoute = EmployeesNewRouteImport.update({
+  id: '/employees/new',
+  path: '/employees/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmployeesEmployeeIdRoute = EmployeesEmployeeIdRouteImport.update({
+  id: '/employees/$employeeId',
+  path: '/employees/$employeeId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditionsNewRoute = EditionsNewRouteImport.update({
+  id: '/editions/new',
+  path: '/editions/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditionsEditionIdRoute = EditionsEditionIdRouteImport.update({
+  id: '/editions/$editionId',
+  path: '/editions/$editionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CopybooksNewRoute = CopybooksNewRouteImport.update({
+  id: '/copybooks/new',
+  path: '/copybooks/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CopybooksCopybookIdRoute = CopybooksCopybookIdRouteImport.update({
+  id: '/copybooks/$copybookId',
+  path: '/copybooks/$copybookId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CategoriesNewRoute = CategoriesNewRouteImport.update({
   id: '/categories/new',
   path: '/categories/new',
@@ -90,6 +278,16 @@ const CategoriesNewRoute = CategoriesNewRouteImport.update({
 const CategoriesCategoryIdRoute = CategoriesCategoryIdRouteImport.update({
   id: '/categories/$categoryId',
   path: '/categories/$categoryId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CabinetsNewRoute = CabinetsNewRouteImport.update({
+  id: '/cabinets/new',
+  path: '/cabinets/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CabinetsCabinetIdRoute = CabinetsCabinetIdRouteImport.update({
+  id: '/cabinets/$cabinetId',
+  path: '/cabinets/$cabinetId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BooksNewRoute = BooksNewRouteImport.update({
@@ -120,16 +318,49 @@ export interface FileRoutesByFullPath {
   '/authors/new': typeof AuthorsNewRoute
   '/books/$bookId': typeof BooksBookIdRoute
   '/books/new': typeof BooksNewRoute
+  '/cabinets/$cabinetId': typeof CabinetsCabinetIdRoute
+  '/cabinets/new': typeof CabinetsNewRoute
   '/categories/$categoryId': typeof CategoriesCategoryIdRoute
   '/categories/new': typeof CategoriesNewRoute
+  '/copybooks/$copybookId': typeof CopybooksCopybookIdRoute
+  '/copybooks/new': typeof CopybooksNewRoute
+  '/editions/$editionId': typeof EditionsEditionIdRoute
+  '/editions/new': typeof EditionsNewRoute
+  '/employees/$employeeId': typeof EmployeesEmployeeIdRoute
+  '/employees/new': typeof EmployeesNewRoute
   '/genres/$genreId': typeof GenresGenreIdRoute
   '/genres/new': typeof GenresNewRoute
+  '/lendings/$lendingId': typeof LendingsLendingIdRoute
+  '/lendings/new': typeof LendingsNewRoute
+  '/locations/$lendingId': typeof LocationsLendingIdRoute
+  '/locations/new': typeof LocationsNewRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/orders/new': typeof OrdersNewRoute
+  '/positions/$positionId': typeof PositionsPositionIdRoute
+  '/positions/new': typeof PositionsNewRoute
+  '/publishers/$publisherId': typeof PublishersPublisherIdRoute
+  '/publishers/new': typeof PublishersNewRoute
+  '/readers/$readerId': typeof ReadersReaderIdRoute
+  '/readers/new': typeof ReadersNewRoute
+  '/shelves/$shelfId': typeof ShelvesShelfIdRoute
+  '/shelves/new': typeof ShelvesNewRoute
   '/users/$userId': typeof UsersUserIdRoute
   '/users/new': typeof UsersNewRoute
   '/authors': typeof AuthorsIndexRoute
   '/books': typeof BooksIndexRoute
+  '/cabinets': typeof CabinetsIndexRoute
   '/categories': typeof CategoriesIndexRoute
+  '/copybooks': typeof CopybooksIndexRoute
+  '/editions': typeof EditionsIndexRoute
+  '/employees': typeof EmployeesIndexRoute
   '/genres': typeof GenresIndexRoute
+  '/lendings': typeof LendingsIndexRoute
+  '/locations': typeof LocationsIndexRoute
+  '/orders': typeof OrdersIndexRoute
+  '/positions': typeof PositionsIndexRoute
+  '/publishers': typeof PublishersIndexRoute
+  '/readers': typeof ReadersIndexRoute
+  '/shelves': typeof ShelvesIndexRoute
   '/users': typeof UsersIndexRoute
 }
 export interface FileRoutesByTo {
@@ -139,16 +370,49 @@ export interface FileRoutesByTo {
   '/authors/new': typeof AuthorsNewRoute
   '/books/$bookId': typeof BooksBookIdRoute
   '/books/new': typeof BooksNewRoute
+  '/cabinets/$cabinetId': typeof CabinetsCabinetIdRoute
+  '/cabinets/new': typeof CabinetsNewRoute
   '/categories/$categoryId': typeof CategoriesCategoryIdRoute
   '/categories/new': typeof CategoriesNewRoute
+  '/copybooks/$copybookId': typeof CopybooksCopybookIdRoute
+  '/copybooks/new': typeof CopybooksNewRoute
+  '/editions/$editionId': typeof EditionsEditionIdRoute
+  '/editions/new': typeof EditionsNewRoute
+  '/employees/$employeeId': typeof EmployeesEmployeeIdRoute
+  '/employees/new': typeof EmployeesNewRoute
   '/genres/$genreId': typeof GenresGenreIdRoute
   '/genres/new': typeof GenresNewRoute
+  '/lendings/$lendingId': typeof LendingsLendingIdRoute
+  '/lendings/new': typeof LendingsNewRoute
+  '/locations/$lendingId': typeof LocationsLendingIdRoute
+  '/locations/new': typeof LocationsNewRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/orders/new': typeof OrdersNewRoute
+  '/positions/$positionId': typeof PositionsPositionIdRoute
+  '/positions/new': typeof PositionsNewRoute
+  '/publishers/$publisherId': typeof PublishersPublisherIdRoute
+  '/publishers/new': typeof PublishersNewRoute
+  '/readers/$readerId': typeof ReadersReaderIdRoute
+  '/readers/new': typeof ReadersNewRoute
+  '/shelves/$shelfId': typeof ShelvesShelfIdRoute
+  '/shelves/new': typeof ShelvesNewRoute
   '/users/$userId': typeof UsersUserIdRoute
   '/users/new': typeof UsersNewRoute
   '/authors': typeof AuthorsIndexRoute
   '/books': typeof BooksIndexRoute
+  '/cabinets': typeof CabinetsIndexRoute
   '/categories': typeof CategoriesIndexRoute
+  '/copybooks': typeof CopybooksIndexRoute
+  '/editions': typeof EditionsIndexRoute
+  '/employees': typeof EmployeesIndexRoute
   '/genres': typeof GenresIndexRoute
+  '/lendings': typeof LendingsIndexRoute
+  '/locations': typeof LocationsIndexRoute
+  '/orders': typeof OrdersIndexRoute
+  '/positions': typeof PositionsIndexRoute
+  '/publishers': typeof PublishersIndexRoute
+  '/readers': typeof ReadersIndexRoute
+  '/shelves': typeof ShelvesIndexRoute
   '/users': typeof UsersIndexRoute
 }
 export interface FileRoutesById {
@@ -159,16 +423,49 @@ export interface FileRoutesById {
   '/authors/new': typeof AuthorsNewRoute
   '/books/$bookId': typeof BooksBookIdRoute
   '/books/new': typeof BooksNewRoute
+  '/cabinets/$cabinetId': typeof CabinetsCabinetIdRoute
+  '/cabinets/new': typeof CabinetsNewRoute
   '/categories/$categoryId': typeof CategoriesCategoryIdRoute
   '/categories/new': typeof CategoriesNewRoute
+  '/copybooks/$copybookId': typeof CopybooksCopybookIdRoute
+  '/copybooks/new': typeof CopybooksNewRoute
+  '/editions/$editionId': typeof EditionsEditionIdRoute
+  '/editions/new': typeof EditionsNewRoute
+  '/employees/$employeeId': typeof EmployeesEmployeeIdRoute
+  '/employees/new': typeof EmployeesNewRoute
   '/genres/$genreId': typeof GenresGenreIdRoute
   '/genres/new': typeof GenresNewRoute
+  '/lendings/$lendingId': typeof LendingsLendingIdRoute
+  '/lendings/new': typeof LendingsNewRoute
+  '/locations/$lendingId': typeof LocationsLendingIdRoute
+  '/locations/new': typeof LocationsNewRoute
+  '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/orders/new': typeof OrdersNewRoute
+  '/positions/$positionId': typeof PositionsPositionIdRoute
+  '/positions/new': typeof PositionsNewRoute
+  '/publishers/$publisherId': typeof PublishersPublisherIdRoute
+  '/publishers/new': typeof PublishersNewRoute
+  '/readers/$readerId': typeof ReadersReaderIdRoute
+  '/readers/new': typeof ReadersNewRoute
+  '/shelves/$shelfId': typeof ShelvesShelfIdRoute
+  '/shelves/new': typeof ShelvesNewRoute
   '/users/$userId': typeof UsersUserIdRoute
   '/users/new': typeof UsersNewRoute
   '/authors/': typeof AuthorsIndexRoute
   '/books/': typeof BooksIndexRoute
+  '/cabinets/': typeof CabinetsIndexRoute
   '/categories/': typeof CategoriesIndexRoute
+  '/copybooks/': typeof CopybooksIndexRoute
+  '/editions/': typeof EditionsIndexRoute
+  '/employees/': typeof EmployeesIndexRoute
   '/genres/': typeof GenresIndexRoute
+  '/lendings/': typeof LendingsIndexRoute
+  '/locations/': typeof LocationsIndexRoute
+  '/orders/': typeof OrdersIndexRoute
+  '/positions/': typeof PositionsIndexRoute
+  '/publishers/': typeof PublishersIndexRoute
+  '/readers/': typeof ReadersIndexRoute
+  '/shelves/': typeof ShelvesIndexRoute
   '/users/': typeof UsersIndexRoute
 }
 export interface FileRouteTypes {
@@ -180,16 +477,49 @@ export interface FileRouteTypes {
     | '/authors/new'
     | '/books/$bookId'
     | '/books/new'
+    | '/cabinets/$cabinetId'
+    | '/cabinets/new'
     | '/categories/$categoryId'
     | '/categories/new'
+    | '/copybooks/$copybookId'
+    | '/copybooks/new'
+    | '/editions/$editionId'
+    | '/editions/new'
+    | '/employees/$employeeId'
+    | '/employees/new'
     | '/genres/$genreId'
     | '/genres/new'
+    | '/lendings/$lendingId'
+    | '/lendings/new'
+    | '/locations/$lendingId'
+    | '/locations/new'
+    | '/orders/$orderId'
+    | '/orders/new'
+    | '/positions/$positionId'
+    | '/positions/new'
+    | '/publishers/$publisherId'
+    | '/publishers/new'
+    | '/readers/$readerId'
+    | '/readers/new'
+    | '/shelves/$shelfId'
+    | '/shelves/new'
     | '/users/$userId'
     | '/users/new'
     | '/authors'
     | '/books'
+    | '/cabinets'
     | '/categories'
+    | '/copybooks'
+    | '/editions'
+    | '/employees'
     | '/genres'
+    | '/lendings'
+    | '/locations'
+    | '/orders'
+    | '/positions'
+    | '/publishers'
+    | '/readers'
+    | '/shelves'
     | '/users'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -199,16 +529,49 @@ export interface FileRouteTypes {
     | '/authors/new'
     | '/books/$bookId'
     | '/books/new'
+    | '/cabinets/$cabinetId'
+    | '/cabinets/new'
     | '/categories/$categoryId'
     | '/categories/new'
+    | '/copybooks/$copybookId'
+    | '/copybooks/new'
+    | '/editions/$editionId'
+    | '/editions/new'
+    | '/employees/$employeeId'
+    | '/employees/new'
     | '/genres/$genreId'
     | '/genres/new'
+    | '/lendings/$lendingId'
+    | '/lendings/new'
+    | '/locations/$lendingId'
+    | '/locations/new'
+    | '/orders/$orderId'
+    | '/orders/new'
+    | '/positions/$positionId'
+    | '/positions/new'
+    | '/publishers/$publisherId'
+    | '/publishers/new'
+    | '/readers/$readerId'
+    | '/readers/new'
+    | '/shelves/$shelfId'
+    | '/shelves/new'
     | '/users/$userId'
     | '/users/new'
     | '/authors'
     | '/books'
+    | '/cabinets'
     | '/categories'
+    | '/copybooks'
+    | '/editions'
+    | '/employees'
     | '/genres'
+    | '/lendings'
+    | '/locations'
+    | '/orders'
+    | '/positions'
+    | '/publishers'
+    | '/readers'
+    | '/shelves'
     | '/users'
   id:
     | '__root__'
@@ -218,16 +581,49 @@ export interface FileRouteTypes {
     | '/authors/new'
     | '/books/$bookId'
     | '/books/new'
+    | '/cabinets/$cabinetId'
+    | '/cabinets/new'
     | '/categories/$categoryId'
     | '/categories/new'
+    | '/copybooks/$copybookId'
+    | '/copybooks/new'
+    | '/editions/$editionId'
+    | '/editions/new'
+    | '/employees/$employeeId'
+    | '/employees/new'
     | '/genres/$genreId'
     | '/genres/new'
+    | '/lendings/$lendingId'
+    | '/lendings/new'
+    | '/locations/$lendingId'
+    | '/locations/new'
+    | '/orders/$orderId'
+    | '/orders/new'
+    | '/positions/$positionId'
+    | '/positions/new'
+    | '/publishers/$publisherId'
+    | '/publishers/new'
+    | '/readers/$readerId'
+    | '/readers/new'
+    | '/shelves/$shelfId'
+    | '/shelves/new'
     | '/users/$userId'
     | '/users/new'
     | '/authors/'
     | '/books/'
+    | '/cabinets/'
     | '/categories/'
+    | '/copybooks/'
+    | '/editions/'
+    | '/employees/'
     | '/genres/'
+    | '/lendings/'
+    | '/locations/'
+    | '/orders/'
+    | '/positions/'
+    | '/publishers/'
+    | '/readers/'
+    | '/shelves/'
     | '/users/'
   fileRoutesById: FileRoutesById
 }
@@ -238,16 +634,49 @@ export interface RootRouteChildren {
   AuthorsNewRoute: typeof AuthorsNewRoute
   BooksBookIdRoute: typeof BooksBookIdRoute
   BooksNewRoute: typeof BooksNewRoute
+  CabinetsCabinetIdRoute: typeof CabinetsCabinetIdRoute
+  CabinetsNewRoute: typeof CabinetsNewRoute
   CategoriesCategoryIdRoute: typeof CategoriesCategoryIdRoute
   CategoriesNewRoute: typeof CategoriesNewRoute
+  CopybooksCopybookIdRoute: typeof CopybooksCopybookIdRoute
+  CopybooksNewRoute: typeof CopybooksNewRoute
+  EditionsEditionIdRoute: typeof EditionsEditionIdRoute
+  EditionsNewRoute: typeof EditionsNewRoute
+  EmployeesEmployeeIdRoute: typeof EmployeesEmployeeIdRoute
+  EmployeesNewRoute: typeof EmployeesNewRoute
   GenresGenreIdRoute: typeof GenresGenreIdRoute
   GenresNewRoute: typeof GenresNewRoute
+  LendingsLendingIdRoute: typeof LendingsLendingIdRoute
+  LendingsNewRoute: typeof LendingsNewRoute
+  LocationsLendingIdRoute: typeof LocationsLendingIdRoute
+  LocationsNewRoute: typeof LocationsNewRoute
+  OrdersOrderIdRoute: typeof OrdersOrderIdRoute
+  OrdersNewRoute: typeof OrdersNewRoute
+  PositionsPositionIdRoute: typeof PositionsPositionIdRoute
+  PositionsNewRoute: typeof PositionsNewRoute
+  PublishersPublisherIdRoute: typeof PublishersPublisherIdRoute
+  PublishersNewRoute: typeof PublishersNewRoute
+  ReadersReaderIdRoute: typeof ReadersReaderIdRoute
+  ReadersNewRoute: typeof ReadersNewRoute
+  ShelvesShelfIdRoute: typeof ShelvesShelfIdRoute
+  ShelvesNewRoute: typeof ShelvesNewRoute
   UsersUserIdRoute: typeof UsersUserIdRoute
   UsersNewRoute: typeof UsersNewRoute
   AuthorsIndexRoute: typeof AuthorsIndexRoute
   BooksIndexRoute: typeof BooksIndexRoute
+  CabinetsIndexRoute: typeof CabinetsIndexRoute
   CategoriesIndexRoute: typeof CategoriesIndexRoute
+  CopybooksIndexRoute: typeof CopybooksIndexRoute
+  EditionsIndexRoute: typeof EditionsIndexRoute
+  EmployeesIndexRoute: typeof EmployeesIndexRoute
   GenresIndexRoute: typeof GenresIndexRoute
+  LendingsIndexRoute: typeof LendingsIndexRoute
+  LocationsIndexRoute: typeof LocationsIndexRoute
+  OrdersIndexRoute: typeof OrdersIndexRoute
+  PositionsIndexRoute: typeof PositionsIndexRoute
+  PublishersIndexRoute: typeof PublishersIndexRoute
+  ReadersIndexRoute: typeof ReadersIndexRoute
+  ShelvesIndexRoute: typeof ShelvesIndexRoute
   UsersIndexRoute: typeof UsersIndexRoute
 }
 
@@ -274,6 +703,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/shelves/': {
+      id: '/shelves/'
+      path: '/shelves'
+      fullPath: '/shelves'
+      preLoaderRoute: typeof ShelvesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/readers/': {
+      id: '/readers/'
+      path: '/readers'
+      fullPath: '/readers'
+      preLoaderRoute: typeof ReadersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/publishers/': {
+      id: '/publishers/'
+      path: '/publishers'
+      fullPath: '/publishers'
+      preLoaderRoute: typeof PublishersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/positions/': {
+      id: '/positions/'
+      path: '/positions'
+      fullPath: '/positions'
+      preLoaderRoute: typeof PositionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/': {
+      id: '/orders/'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof OrdersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/locations/': {
+      id: '/locations/'
+      path: '/locations'
+      fullPath: '/locations'
+      preLoaderRoute: typeof LocationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lendings/': {
+      id: '/lendings/'
+      path: '/lendings'
+      fullPath: '/lendings'
+      preLoaderRoute: typeof LendingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/genres/': {
       id: '/genres/'
       path: '/genres'
@@ -281,11 +759,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GenresIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/employees/': {
+      id: '/employees/'
+      path: '/employees'
+      fullPath: '/employees'
+      preLoaderRoute: typeof EmployeesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editions/': {
+      id: '/editions/'
+      path: '/editions'
+      fullPath: '/editions'
+      preLoaderRoute: typeof EditionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/copybooks/': {
+      id: '/copybooks/'
+      path: '/copybooks'
+      fullPath: '/copybooks'
+      preLoaderRoute: typeof CopybooksIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/categories/': {
       id: '/categories/'
       path: '/categories'
       fullPath: '/categories'
       preLoaderRoute: typeof CategoriesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cabinets/': {
+      id: '/cabinets/'
+      path: '/cabinets'
+      fullPath: '/cabinets'
+      preLoaderRoute: typeof CabinetsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/books/': {
@@ -316,6 +822,104 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsersUserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/shelves/new': {
+      id: '/shelves/new'
+      path: '/shelves/new'
+      fullPath: '/shelves/new'
+      preLoaderRoute: typeof ShelvesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/shelves/$shelfId': {
+      id: '/shelves/$shelfId'
+      path: '/shelves/$shelfId'
+      fullPath: '/shelves/$shelfId'
+      preLoaderRoute: typeof ShelvesShelfIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/readers/new': {
+      id: '/readers/new'
+      path: '/readers/new'
+      fullPath: '/readers/new'
+      preLoaderRoute: typeof ReadersNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/readers/$readerId': {
+      id: '/readers/$readerId'
+      path: '/readers/$readerId'
+      fullPath: '/readers/$readerId'
+      preLoaderRoute: typeof ReadersReaderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/publishers/new': {
+      id: '/publishers/new'
+      path: '/publishers/new'
+      fullPath: '/publishers/new'
+      preLoaderRoute: typeof PublishersNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/publishers/$publisherId': {
+      id: '/publishers/$publisherId'
+      path: '/publishers/$publisherId'
+      fullPath: '/publishers/$publisherId'
+      preLoaderRoute: typeof PublishersPublisherIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/positions/new': {
+      id: '/positions/new'
+      path: '/positions/new'
+      fullPath: '/positions/new'
+      preLoaderRoute: typeof PositionsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/positions/$positionId': {
+      id: '/positions/$positionId'
+      path: '/positions/$positionId'
+      fullPath: '/positions/$positionId'
+      preLoaderRoute: typeof PositionsPositionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/new': {
+      id: '/orders/new'
+      path: '/orders/new'
+      fullPath: '/orders/new'
+      preLoaderRoute: typeof OrdersNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orders/$orderId': {
+      id: '/orders/$orderId'
+      path: '/orders/$orderId'
+      fullPath: '/orders/$orderId'
+      preLoaderRoute: typeof OrdersOrderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/locations/new': {
+      id: '/locations/new'
+      path: '/locations/new'
+      fullPath: '/locations/new'
+      preLoaderRoute: typeof LocationsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/locations/$lendingId': {
+      id: '/locations/$lendingId'
+      path: '/locations/$lendingId'
+      fullPath: '/locations/$lendingId'
+      preLoaderRoute: typeof LocationsLendingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lendings/new': {
+      id: '/lendings/new'
+      path: '/lendings/new'
+      fullPath: '/lendings/new'
+      preLoaderRoute: typeof LendingsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lendings/$lendingId': {
+      id: '/lendings/$lendingId'
+      path: '/lendings/$lendingId'
+      fullPath: '/lendings/$lendingId'
+      preLoaderRoute: typeof LendingsLendingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/genres/new': {
       id: '/genres/new'
       path: '/genres/new'
@@ -330,6 +934,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GenresGenreIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/employees/new': {
+      id: '/employees/new'
+      path: '/employees/new'
+      fullPath: '/employees/new'
+      preLoaderRoute: typeof EmployeesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/employees/$employeeId': {
+      id: '/employees/$employeeId'
+      path: '/employees/$employeeId'
+      fullPath: '/employees/$employeeId'
+      preLoaderRoute: typeof EmployeesEmployeeIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editions/new': {
+      id: '/editions/new'
+      path: '/editions/new'
+      fullPath: '/editions/new'
+      preLoaderRoute: typeof EditionsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editions/$editionId': {
+      id: '/editions/$editionId'
+      path: '/editions/$editionId'
+      fullPath: '/editions/$editionId'
+      preLoaderRoute: typeof EditionsEditionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/copybooks/new': {
+      id: '/copybooks/new'
+      path: '/copybooks/new'
+      fullPath: '/copybooks/new'
+      preLoaderRoute: typeof CopybooksNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/copybooks/$copybookId': {
+      id: '/copybooks/$copybookId'
+      path: '/copybooks/$copybookId'
+      fullPath: '/copybooks/$copybookId'
+      preLoaderRoute: typeof CopybooksCopybookIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/categories/new': {
       id: '/categories/new'
       path: '/categories/new'
@@ -342,6 +988,20 @@ declare module '@tanstack/react-router' {
       path: '/categories/$categoryId'
       fullPath: '/categories/$categoryId'
       preLoaderRoute: typeof CategoriesCategoryIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cabinets/new': {
+      id: '/cabinets/new'
+      path: '/cabinets/new'
+      fullPath: '/cabinets/new'
+      preLoaderRoute: typeof CabinetsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cabinets/$cabinetId': {
+      id: '/cabinets/$cabinetId'
+      path: '/cabinets/$cabinetId'
+      fullPath: '/cabinets/$cabinetId'
+      preLoaderRoute: typeof CabinetsCabinetIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/books/new': {
@@ -382,16 +1042,49 @@ const rootRouteChildren: RootRouteChildren = {
   AuthorsNewRoute: AuthorsNewRoute,
   BooksBookIdRoute: BooksBookIdRoute,
   BooksNewRoute: BooksNewRoute,
+  CabinetsCabinetIdRoute: CabinetsCabinetIdRoute,
+  CabinetsNewRoute: CabinetsNewRoute,
   CategoriesCategoryIdRoute: CategoriesCategoryIdRoute,
   CategoriesNewRoute: CategoriesNewRoute,
+  CopybooksCopybookIdRoute: CopybooksCopybookIdRoute,
+  CopybooksNewRoute: CopybooksNewRoute,
+  EditionsEditionIdRoute: EditionsEditionIdRoute,
+  EditionsNewRoute: EditionsNewRoute,
+  EmployeesEmployeeIdRoute: EmployeesEmployeeIdRoute,
+  EmployeesNewRoute: EmployeesNewRoute,
   GenresGenreIdRoute: GenresGenreIdRoute,
   GenresNewRoute: GenresNewRoute,
+  LendingsLendingIdRoute: LendingsLendingIdRoute,
+  LendingsNewRoute: LendingsNewRoute,
+  LocationsLendingIdRoute: LocationsLendingIdRoute,
+  LocationsNewRoute: LocationsNewRoute,
+  OrdersOrderIdRoute: OrdersOrderIdRoute,
+  OrdersNewRoute: OrdersNewRoute,
+  PositionsPositionIdRoute: PositionsPositionIdRoute,
+  PositionsNewRoute: PositionsNewRoute,
+  PublishersPublisherIdRoute: PublishersPublisherIdRoute,
+  PublishersNewRoute: PublishersNewRoute,
+  ReadersReaderIdRoute: ReadersReaderIdRoute,
+  ReadersNewRoute: ReadersNewRoute,
+  ShelvesShelfIdRoute: ShelvesShelfIdRoute,
+  ShelvesNewRoute: ShelvesNewRoute,
   UsersUserIdRoute: UsersUserIdRoute,
   UsersNewRoute: UsersNewRoute,
   AuthorsIndexRoute: AuthorsIndexRoute,
   BooksIndexRoute: BooksIndexRoute,
+  CabinetsIndexRoute: CabinetsIndexRoute,
   CategoriesIndexRoute: CategoriesIndexRoute,
+  CopybooksIndexRoute: CopybooksIndexRoute,
+  EditionsIndexRoute: EditionsIndexRoute,
+  EmployeesIndexRoute: EmployeesIndexRoute,
   GenresIndexRoute: GenresIndexRoute,
+  LendingsIndexRoute: LendingsIndexRoute,
+  LocationsIndexRoute: LocationsIndexRoute,
+  OrdersIndexRoute: OrdersIndexRoute,
+  PositionsIndexRoute: PositionsIndexRoute,
+  PublishersIndexRoute: PublishersIndexRoute,
+  ReadersIndexRoute: ReadersIndexRoute,
+  ShelvesIndexRoute: ShelvesIndexRoute,
   UsersIndexRoute: UsersIndexRoute,
 }
 export const routeTree = rootRouteImport

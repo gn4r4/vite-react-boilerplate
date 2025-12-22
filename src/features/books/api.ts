@@ -1,51 +1,40 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type UseQueryResult, type UseMutationResult } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import apiClient from '@/lib/axios'; // Переконайтеся, що шлях правильний (зазвичай @/lib/axios)
-import { IBook } from './types';
+import apiClient from '@/lib/axios';
+import type { IBook } from './types';
 
+// ВИПРАВЛЕНО: Інтерфейс тепер відповідає тому, що чекає бекенд (snake_case)
 interface BookPayload {
   title?: string;
-  categoryId?: number;
-  genreId?: number;
-  authorIds?: number[];
+  id_category?: number;
+  id_genre?: number;
+  id_author?: Array<number>;
 }
 
 // --- API Functions ---
 
-const getBooks = async (): Promise<IBook[]> => {
+const getBooks = async (): Promise<Array<IBook>> => {
   const response = await apiClient.get('/books');
-  return response.data.data;
+  const data = response.data as { data: Array<IBook> };
+  return data.data || [];
 };
 
 const getBookById = async (id: number): Promise<IBook> => {
   const response = await apiClient.get(`/books/${id}`);
-  return response.data.data;
+  const data = response.data as { data: IBook };
+  return data.data;
 };
 
 const createBook = async (newBook: BookPayload): Promise<IBook> => {
-
-  const backendPayload = {
-    title: newBook.title,
-    id_category: newBook.categoryId, // Ось тут була проблема
-    id_genre: newBook.genreId,       // І тут
-    authorIds: newBook.authorIds,    // authorIds зазвичай залишається так, або authors
-  };
-
-  const response = await apiClient.post('/books', backendPayload);
-  return response.data.data;
+  const response = await apiClient.post('/books', newBook);
+  const data = response.data as { data: IBook };
+  return data.data;
 };
 
 const updateBook = async ({ id, data }: { id: number; data: Partial<BookPayload> }): Promise<IBook> => {
-  
-  const backendPayload = {
-    ...(data.title && { title: data.title }), // Додаємо, тільки якщо є
-    ...(data.categoryId && { id_category: data.categoryId }),
-    ...(data.genreId && { id_genre: data.genreId }),
-    ...(data.authorIds && { authorIds: data.authorIds }),
-  };
-
-  const response = await apiClient.patch(`/books/${id}`, backendPayload);
-  return response.data.data;
+  const response = await apiClient.patch(`/books/${id}`, data);
+  const responseData = response.data as { data: IBook };
+  return responseData.data;
 };
 
 const deleteBook = async (id: number): Promise<void> => {
@@ -54,52 +43,53 @@ const deleteBook = async (id: number): Promise<void> => {
 
 // --- Hooks ---
 
-export const useBooks = () => useQuery({ 
-  queryKey: ['books'], 
-  queryFn: getBooks 
-});
+export const useBooks = (): UseQueryResult<Array<IBook>> =>
+  useQuery<Array<IBook>>({
+    queryKey: ['books'],
+    queryFn: getBooks,
+  });
 
-export const useBook = (id: number) => useQuery({ 
-  queryKey: ['books', id], 
-  queryFn: () => getBookById(id),
-  enabled: !!id 
-});
+export const useBook = (id: number): UseQueryResult<IBook> =>
+  useQuery<IBook>({
+    queryKey: ['books', id],
+    queryFn: () => getBookById(id),
+    enabled: !!id,
+  });
 
-export const useCreateBook = () => {
+export const useCreateBook = (): UseMutationResult<IBook, unknown, BookPayload> => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   return useMutation({
     mutationFn: createBook,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['books'] });
-      navigate({ to: '/books' });
+      void queryClient.invalidateQueries({ queryKey: ['books'] });
+      void navigate({ to: '/books' });
     },
   });
 };
 
-export const useUpdateBook = () => {
+export const useUpdateBook = (): UseMutationResult<IBook, unknown, { id: number; data: Partial<BookPayload> }> => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   return useMutation({
     mutationFn: updateBook,
     onSuccess: (updatedBook) => {
-      queryClient.invalidateQueries({ queryKey: ['books'] });
-      // 👇 Важливо: переконайтеся, що ID називається 'id' (як у JSON бекенду), а не 'id_book'
+      void queryClient.invalidateQueries({ queryKey: ['books'] });
       queryClient.setQueryData(['books', updatedBook.id], updatedBook);
-      navigate({ to: '/books' });
+      void navigate({ to: '/books' });
     },
   });
 };
 
-export const useDeleteBook = () => {
+export const useDeleteBook = (): UseMutationResult<void, unknown, number> => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: deleteBook,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['books'] });
+      void queryClient.invalidateQueries({ queryKey: ['books'] });
     },
   });
 };

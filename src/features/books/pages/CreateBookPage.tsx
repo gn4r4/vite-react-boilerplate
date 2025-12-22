@@ -14,7 +14,7 @@ export const CreateBookPage = () => {
   const { data: genres } = useGenres();
   const { data: authors } = useAuthors();
 
-  // Стан форми
+  // Стан форми (залишаємо camelCase для зручності в React)
   const [formData, setFormData] = useState({
     title: '',
     categoryId: '',
@@ -22,18 +22,17 @@ export const CreateBookPage = () => {
     authorIds: [] as string[],
   });
 
-  // Стан для пошуку авторів (фільтр)
+  // Стан для помилок валідації на фронтенді
+  const [formErrors, setFormErrors] = useState<string | null>(null);
+
   const [authorSearch, setAuthorSearch] = useState('');
 
-  // Логіка перемикання автора (Checkbox toggle)
   const toggleAuthor = (id: string) => {
     setFormData((prev) => {
       const isSelected = prev.authorIds.includes(id);
       if (isSelected) {
-        // Якщо вже вибраний - видаляємо
         return { ...prev, authorIds: prev.authorIds.filter((aid) => aid !== id) };
       } else {
-        // Якщо не вибраний - додаємо
         return { ...prev, authorIds: [...prev.authorIds, id] };
       }
     });
@@ -41,15 +40,43 @@ export const CreateBookPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createBook.mutate({
+    setFormErrors(null);
+
+    // 1. Ручна валідація авторів (HTML required не працює на групі чекбоксів)
+    if (formData.authorIds.length === 0) {
+      setFormErrors("Будь ласка, оберіть хоча б одного автора.");
+      return;
+    }
+
+    // 2. Безпечна конвертація даних
+    // Змінюємо ключі на ті, що очікує бекенд (id_category, id_genre, id_author)
+    const payload = {
       title: formData.title,
-      categoryId: Number(formData.categoryId),
-      genreId: Number(formData.genreId),
-      authorIds: formData.authorIds.map(Number),
+      id_category: Number(formData.categoryId),
+      id_genre: Number(formData.genreId),
+      id_author: formData.authorIds.map(Number), // Відправляємо масив ID авторів
+    };
+
+    // Додаткова перевірка перед відправкою (перевіряємо вже нові ключі)
+    if (!payload.id_category || !payload.id_genre) {
+        setFormErrors("Необхідно обрати категорію та жанр.");
+        return;
+    }
+
+    console.log("Відправляємо дані:", payload); // Для дебагу в консолі браузера
+
+    createBook.mutate(payload, {
+        onSuccess: () => {
+            // Опціонально: перенаправлення тільки після успіху
+            navigate({ to: '/books' });
+        },
+        onError: (error) => {
+            console.error("Помилка сервера:", error);
+            // Тут можна вивести повідомлення з error.errorMessage
+        }
     });
   };
 
-  // Фільтрація авторів для пошуку
   const filteredAuthors = authors?.filter((author) => {
     const fullName = `${author.firstname} ${author.lastname}`.toLowerCase();
     return fullName.includes(authorSearch.toLowerCase());
@@ -58,6 +85,20 @@ export const CreateBookPage = () => {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-xl mt-6">
       <h1 className="text-3xl font-bold mb-6 text-gray-800 border-b pb-4">Створити нову книгу</h1>
+      
+      {/* Виведення помилок валідації */}
+      {formErrors && (
+        <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {formErrors}
+        </div>
+      )}
+
+      {/* Показуємо помилку від сервера, якщо вона є */}
+      {createBook.isError && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              Помилка збереження: {(createBook.error as any)?.response?.data?.errorMessage || "Перевірте правильність даних"}
+          </div>
+      )}
       
       <form onSubmit={handleSubmit} className="space-y-6">
         
@@ -85,19 +126,13 @@ export const CreateBookPage = () => {
                 value={formData.categoryId}
                 onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
               >
-                {/* disabled hidden - робить цю опцію недоступною для вибору, але видимою як плейсхолдер */}
                 <option value="" disabled hidden>Оберіть категорію...</option>
                 {categories?.map((cat) => (
                   <option key={cat.id} value={cat.id}>
-                    {/* Використовуємо поле, яке реально приходить з бекенду */}
                     {(cat as any).name || (cat as any).title}
                   </option>
                 ))}
               </select>
-              {/* Стрілочка для краси */}
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-              </div>
             </div>
           </div>
 
@@ -118,20 +153,16 @@ export const CreateBookPage = () => {
                   </option>
                 ))}
               </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-              </div>
             </div>
           </div>
         </div>
 
-        {/* Вибір Авторів (Список з чекбоксами) */}
-        <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+        {/* Вибір Авторів */}
+        <div className={`border rounded-lg p-4 bg-gray-50 ${formErrors && formData.authorIds.length === 0 ? 'border-red-500' : 'border-gray-200'}`}>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Автори <span className="text-gray-400 font-normal text-xs">(Оберіть одного або декількох)</span>
+            Автори <span className="text-red-500">*</span>
           </label>
           
-          {/* Пошук авторів */}
           <input
             type="text"
             placeholder="Пошук автора..."
@@ -140,7 +171,6 @@ export const CreateBookPage = () => {
             onChange={(e) => setAuthorSearch(e.target.value)}
           />
 
-          {/* Скрол-список */}
           <div className="h-48 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
             {filteredAuthors?.length === 0 && (
                <p className="text-sm text-gray-500 text-center py-4">Авторів не знайдено</p>
@@ -173,21 +203,21 @@ export const CreateBookPage = () => {
         </div>
 
         {/* Кнопки */}
-        <div className="flex justify-end gap-3 pt-4 border-t">
-            <button
-                type="button"
-                onClick={() => navigate({ to: '/books' })}
-                className="px-6 py-2 rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 transition font-medium"
-            >
+        <div className="flex gap-3 pt-4">
+              <button 
+                type="submit" 
+                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                Зберегти
+              </button>
+              <button 
+                type="button" 
+                onClick={() => navigate({ to: '/books' })} 
+                className="flex-1 bg-gray-300 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-400 transition-colors font-medium"
+              >
                 Скасувати
-            </button>
-            <button
-                type="submit"
-                className="px-6 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 shadow-md hover:shadow-lg transition font-medium"
-            >
-                Створити книгу
-            </button>
-        </div>
+              </button>
+            </div>
       </form>
     </div>
   );

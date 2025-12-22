@@ -2,7 +2,7 @@ export interface IAuthor {
   id: number;
   lastname: string;
   firstname: string;
-  patronymic?: string;
-  dateofbirth?: Date;
+  patronymic?: string | null;
+  dateofbirth?: Date | null;
   fullName: string;
 }
