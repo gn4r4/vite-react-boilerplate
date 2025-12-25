@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useCreateLocation, useLocations } from '../api';
 import { useShelves } from '../../shelves/api'; 
 import { IShelf } from '../../shelves/types';
+import type { ICreateLocationPayload } from '../types';
 
 export const CreateLocationPage = () => {
   const navigate = useNavigate();
@@ -11,7 +12,8 @@ export const CreateLocationPage = () => {
   const { data: allLocations } = useLocations();
 
   const [idShelf, setIdShelf] = useState('');
-  const [quantity, setQuantity] = useState(1); // Стейт для кількості
+  const [quantity, setQuantity] = useState(1);
+  const [shelfFilter, setShelfFilter] = useState(''); // Стан для пошуку полиці
 
   // Підрахунок місць на обраній полиці
   const shelfStats = useMemo(() => {
@@ -28,13 +30,45 @@ export const CreateLocationPage = () => {
     };
   }, [idShelf, allLocations]);
 
+  // Фільтрація та сортування полиць для випадаючого списку
+  const filteredShelves = useMemo(() => {
+      if (!shelves) return [];
+      
+      let result = [...shelves];
+      
+      // Фільтр
+      if (shelfFilter) {
+          const lowerFilter = shelfFilter.toLowerCase();
+          result = result.filter(s => 
+              (s.cabinet?.name?.toLowerCase().includes(lowerFilter) || '') || 
+              (s.code || s.shelfcode || '').toLowerCase().includes(lowerFilter)
+          );
+      }
+      
+      // Сортування: Шафа -> Код полиці
+      result.sort((a, b) => {
+          const cabA = a.cabinet?.name || '';
+          const cabB = b.cabinet?.name || '';
+          if (cabA !== cabB) return cabA.localeCompare(cabB);
+          
+          const codeA = a.code || a.shelfcode || '';
+          const codeB = b.code || b.shelfcode || '';
+          return codeA.localeCompare(codeB);
+      });
+      
+      return result;
+  }, [shelves, shelfFilter]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (idShelf && quantity > 0) {
-      createLocation.mutate({
+      
+      const payload: ICreateLocationPayload = {
         id_shelf: Number(idShelf),
         quantity: Number(quantity)
-      });
+      };
+
+      createLocation.mutate(payload);
     }
   };
 
@@ -47,6 +81,18 @@ export const CreateLocationPage = () => {
         {/* Вибір полиці */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">Оберіть полицю</label>
+          
+          {/* Поле пошуку полиці */}
+          <div className="mb-2">
+            <input
+                type="text"
+                placeholder="Фільтрувати список полиць (назва шафи або код)..."
+                value={shelfFilter}
+                onChange={(e) => setShelfFilter(e.target.value)}
+                className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-blue-500"
+            />
+          </div>
+
           <div className="relative">
             <select
               value={idShelf}
@@ -54,18 +100,19 @@ export const CreateLocationPage = () => {
               className="w-full border border-gray-300 p-3 rounded-lg bg-white appearance-none focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
               required
               disabled={isShelvesLoading}
+              size={filteredShelves.length > 10 ? 5 : 1} // Якщо полиць багато і є фільтр, можна показати список (опціонально)
             >
-              <option value="" disabled hidden>Оберіть полицю...</option>
-              {shelves?.map((shelf: IShelf) => (
+              <option value="" disabled hidden>Оберіть полицю зі списку...</option>
+              {filteredShelves.map((shelf: IShelf) => (
                 <option key={shelf.id} value={shelf.id}>
                    Шафа: {shelf.cabinet?.name || '?'}, Код: {shelf.code || shelf.shelfcode}
                 </option>
               ))}
             </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-              <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-            </div>
           </div>
+          {filteredShelves.length === 0 && shelfFilter && (
+              <p className="text-xs text-red-500 mt-1">Полиць не знайдено за вашим запитом.</p>
+          )}
 
           {/* Статистика обраної полиці */}
           {shelfStats && (

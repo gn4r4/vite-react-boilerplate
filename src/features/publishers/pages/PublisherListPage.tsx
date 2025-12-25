@@ -1,9 +1,65 @@
+import { useState, useMemo } from 'react';
 import { Link } from '@tanstack/react-router';
 import { usePublishers, useDeletePublisher } from '../api';
+import { IPublisher } from '../types';
 
 export const PublishersListPage = () => {
   const { data: publishers, isLoading, error } = usePublishers();
   const deletePublisher = useDeletePublisher();
+
+  // Стейт для пошуку та сортування
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ 
+    key: keyof IPublisher; 
+    direction: 'asc' | 'desc' 
+  } | null>(null);
+
+  // Обробник сортування
+  const handleSort = (key: keyof IPublisher) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  // Мемоізація даних (фільтрація + сортування)
+  const processedPublishers = useMemo(() => {
+    if (!publishers) return [];
+
+    let result = [...publishers];
+
+    // 1. Пошук
+    if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase();
+      result = result.filter((publisher) => 
+        publisher.name.toLowerCase().includes(lowerQuery) ||
+        (publisher.address && publisher.address.toLowerCase().includes(lowerQuery)) ||
+        (publisher.contact && publisher.contact.toLowerCase().includes(lowerQuery))
+      );
+    }
+
+    // 2. Сортування
+    if (sortConfig) {
+      result.sort((a, b) => {
+        // @ts-ignore
+        const aValue = a[sortConfig.key] ? String(a[sortConfig.key]) : '';
+        // @ts-ignore
+        const bValue = b[sortConfig.key] ? String(b[sortConfig.key]) : '';
+
+        if (aValue === bValue) return 0;
+        
+        // Сортування пустих значень
+        if (aValue === '') return 1;
+        if (bValue === '') return -1;
+
+        const comparison = aValue.localeCompare(bValue, 'uk');
+        return sortConfig.direction === 'asc' ? comparison : -comparison;
+      });
+    }
+
+    return result;
+  }, [publishers, searchQuery, sortConfig]);
 
   if (isLoading) 
     return (
@@ -26,7 +82,9 @@ export const PublishersListPage = () => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold text-gray-900">Видавці</h1>
-            <p className="text-gray-600 mt-2">Всього видавців: {publishers?.length || 0}</p>
+            <p className="text-gray-600 mt-2">
+              Знайдено видавців: {processedPublishers.length} (Всього: {publishers?.length || 0})
+            </p>
           </div>
           <Link 
             to="/publishers/new" 
@@ -36,20 +94,46 @@ export const PublishersListPage = () => {
           </Link>
         </div>
 
+        {/* Search Bar */}
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Пошук за назвою, адресою або контактами..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm transition-all"
+          />
+        </div>
+
         {/* Table */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {publishers && publishers.length > 0 ? (
+          {processedPublishers.length > 0 ? (
             <table className="w-full">
               <thead className="bg-gray-100 border-b">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Назва</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Адреса</th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Контакт</th>
+                  <th 
+                    onClick={() => handleSort('name')}
+                    className="px-6 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors select-none"
+                  >
+                    Назва {sortConfig?.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th 
+                    onClick={() => handleSort('address')}
+                    className="px-6 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors select-none"
+                  >
+                    Адреса {sortConfig?.key === 'address' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th 
+                    onClick={() => handleSort('contact')}
+                    className="px-6 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors select-none"
+                  >
+                    Контакт {sortConfig?.key === 'contact' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                  </th>
                   <th className="px-6 py-3 text-right text-sm font-semibold text-gray-700">Дії</th>
                 </tr>
               </thead>
               <tbody>
-                {publishers.map((publisher, index) => (
+                {processedPublishers.map((publisher, index) => (
                   <tr 
                     key={publisher.id} 
                     className={`border-b hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
@@ -67,7 +151,7 @@ export const PublishersListPage = () => {
                       </Link>
                       <button 
                         onClick={() => {
-                          if (window.confirm('Ви впевнені?')) {
+                          if (window.confirm(`Ви впевнені, що хочете видалити видавця "${publisher.name}"?`)) {
                             deletePublisher.mutate(publisher.id);
                           }
                         }}
@@ -82,7 +166,9 @@ export const PublishersListPage = () => {
             </table>
           ) : (
             <div className="p-8 text-center text-gray-600">
-              <p className="text-lg">Видавців не знайдено</p>
+              <p className="text-lg">
+                {searchQuery ? 'За вашим запитом нічого не знайдено' : 'Видавців не знайдено'}
+              </p>
             </div>
           )}
         </div>

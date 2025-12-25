@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from '@tanstack/react-router';
 import { usePublisher, useUpdatePublisher } from '../api';
+import type { IPublisherPayload, IPublisher } from '../types';
 
 export const EditPublisherPage = () => {
   const { publisherId } = useParams({ strict: false });
   const navigate = useNavigate();
+  const id = Number(publisherId);
   
-  const { data: publisher, isLoading } = usePublisher(Number(publisherId));
+  const { data: publisher, isLoading } = usePublisher(id);
   const updatePublisher = useUpdatePublisher();
 
   const [formData, setFormData] = useState({
@@ -27,13 +29,21 @@ export const EditPublisherPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.name.trim()) {
+        alert("Назва не може бути порожньою");
+        return;
+    }
+
+    const payload: IPublisherPayload = {
+      name: formData.name.trim(),
+      address: formData.address.trim() || null,
+      contact: formData.contact.trim() || null,
+    };
+
     updatePublisher.mutate({ 
-      id: Number(publisherId), 
-      data: {
-        name: formData.name,
-        address: formData.address,
-        contact: formData.contact,
-      }
+      id: id, 
+      data: payload as unknown as Partial<IPublisher>
     });
   };
 
@@ -89,9 +99,10 @@ export const EditPublisherPage = () => {
             <div className="flex gap-3 pt-4">
               <button 
                 type="submit" 
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                disabled={updatePublisher.isPending}
+                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-70"
               >
-                Зберегти
+                {updatePublisher.isPending ? 'Збереження...' : 'Зберегти'}
               </button>
               <button 
                 type="button" 

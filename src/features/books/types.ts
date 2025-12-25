@@ -9,3 +9,10 @@ export interface IBook {
   genre: IGenre | null;
   authors: IAuthor[];
 }
+
+export interface IBookPayload {
+  title?: string;
+  id_category?: number;
+  id_genre?: number;
+  id_author?: Array<number>;
+}

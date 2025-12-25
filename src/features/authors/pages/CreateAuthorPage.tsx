@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import type { IAuthorPayload, IAuthor } from '../types';
 import { useCreateAuthor } from '../api';
 
 export const CreateAuthorPage = () => {
@@ -13,14 +14,34 @@ export const CreateAuthorPage = () => {
     dateofbirth: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [formErrors, setFormErrors] = useState<string | null>(null);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    createAuthor.mutate({
-      firstname: formData.firstname,
-      lastname: formData.lastname,
-      patronymic: formData.patronymic,
-      dateofbirth: formData.dateofbirth ? new Date(formData.dateofbirth) : undefined
-    });
+    setFormErrors(null);
+
+    // Валідація
+    if (!formData.firstname.trim() || !formData.lastname.trim()) {
+      setFormErrors("Ім'я та прізвище є обов'язковими полями.");
+      return;
+    }
+
+    // 1. Формуємо payload
+    const payload: IAuthorPayload = {
+      firstname: formData.firstname.trim(),
+      lastname: formData.lastname.trim(),
+      patronymic: formData.patronymic.trim() || null,
+      dateofbirth: formData.dateofbirth || null
+    };
+
+    // 2. Підготовка даних для API (Partial<IAuthor>)
+    const apiData: Partial<IAuthor> = {
+      ...payload,
+      // Якщо дата є, створюємо об'єкт Date, інакше null
+      dateofbirth: payload.dateofbirth ? new Date(payload.dateofbirth) : null
+    };
+
+    createAuthor.mutate(apiData);
   };
 
   return (
@@ -30,6 +51,12 @@ export const CreateAuthorPage = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Створити автора</h1>
           <p className="text-gray-600 mb-6">Введіть інформацію про нового автора</p>
 
+          {formErrors && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {formErrors}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Ім'я */}
@@ -37,11 +64,11 @@ export const CreateAuthorPage = () => {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Ім'я *</label>
                 <input
                   type="text"
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
                   value={formData.firstname}
                   onChange={(e) => setFormData({ ...formData, firstname: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none transition"
-                  placeholder="Введіть ім'я..."
-                  required
+                  placeholder="Введіть ім'я"
                 />
               </div>
 
@@ -50,15 +77,16 @@ export const CreateAuthorPage = () => {
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Прізвище *</label>
                 <input
                   type="text"
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
                   value={formData.lastname}
                   onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none transition"
-                  placeholder="Введіть прізвище..."
-                  required
+                  placeholder="Введіть прізвище"
                 />
               </div>
             </div>
 
+            {/* По батькові */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">По батькові</label>
               <input
@@ -70,6 +98,7 @@ export const CreateAuthorPage = () => {
               />
             </div>
 
+            {/* Дата народження */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Дата народження</label>
               <input
@@ -83,9 +112,10 @@ export const CreateAuthorPage = () => {
             <div className="flex gap-3 pt-4">
               <button 
                 type="submit" 
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-70"
+                disabled={createAuthor.isPending}
               >
-                Зберегти
+                {createAuthor.isPending ? 'Збереження...' : 'Зберегти'}
               </button>
               <button 
                 type="button" 

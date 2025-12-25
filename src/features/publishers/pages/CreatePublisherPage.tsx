@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useCreatePublisher } from '../api';
+import type { IPublisherPayload, IPublisher } from '../types';
 
 export const CreatePublisherPage = () => {
   const navigate = useNavigate();
@@ -14,11 +15,19 @@ export const CreatePublisherPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createPublisher.mutate({
-      name: formData.name,
-      address: formData.address,
-      contact: formData.contact,
-    });
+
+    if (!formData.name.trim()) {
+        alert("Назва не може бути порожньою");
+        return;
+    }
+
+    const payload: IPublisherPayload = {
+      name: formData.name.trim(),
+      address: formData.address.trim() || null,
+      contact: formData.contact.trim() || null,
+    };
+
+    createPublisher.mutate(payload as unknown as Partial<IPublisher>);
   };
 
   return (
@@ -66,9 +75,10 @@ export const CreatePublisherPage = () => {
             <div className="flex gap-3 pt-4">
               <button 
                 type="submit" 
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                disabled={createPublisher.isPending}
+                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-70"
               >
-                Зберегти
+                {createPublisher.isPending ? 'Збереження...' : 'Зберегти'}
               </button>
               <button 
                 type="button" 

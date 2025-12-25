@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useAuthor, useUpdateAuthor } from '../api';
+import type { IAuthorPayload, IAuthor } from '../types';
 
 export const EditAuthorPage = () => {
   const { authorId } = useParams({ strict: false });
@@ -16,29 +17,48 @@ export const EditAuthorPage = () => {
     dateofbirth: '',
   });
 
+  const [formErrors, setFormErrors] = useState<string | null>(null);
+
   useEffect(() => {
     if (author) {
       setFormData({
         firstname: author.firstname,
         lastname: author.lastname,
         patronymic: author.patronymic || '',
+        // Форматуємо дату в YYYY-MM-DD для input type="date"
         dateofbirth: author.dateofbirth 
-        ? new Date(author.dateofbirth).toISOString().split('T')[0] ?? '' 
-        : '',
+          ? new Date(author.dateofbirth).toISOString().split('T')[0] 
+          : '',
       });
     }
   }, [author]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    updateAuthor.mutate({ 
-      id: Number(authorId), 
-      data: {
-        firstname: formData.firstname,
-        lastname: formData.lastname,
-        patronymic: formData.patronymic,
-        dateofbirth: formData.dateofbirth ? new Date(formData.dateofbirth) : undefined
-      } 
+    setFormErrors(null);
+
+    if (!formData.firstname.trim() || !formData.lastname.trim()) {
+        setFormErrors("Ім'я та прізвище є обов'язковими полями.");
+        return;
+    }
+
+    // 1. Формуємо payload
+    const payload: IAuthorPayload = {
+      firstname: formData.firstname.trim(),
+      lastname: formData.lastname.trim(),
+      patronymic: formData.patronymic.trim() || null,
+      dateofbirth: formData.dateofbirth || null
+    };
+
+    // 2. Конвертуємо в Partial<IAuthor>
+    const apiData: Partial<IAuthor> = {
+      ...payload,
+      dateofbirth: payload.dateofbirth ? new Date(payload.dateofbirth) : null
+    };
+
+    updateAuthor.mutate({
+      id: Number(authorId),
+      data: apiData
     });
   };
 
@@ -56,29 +76,37 @@ export const EditAuthorPage = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Редагувати автора</h1>
           <p className="text-gray-600 mb-6">Оновіть інформацію про автора</p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Ім'я *</label>
-              <input
-                type="text"
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
-                value={formData.firstname}
-                onChange={(e) => setFormData({ ...formData, firstname: e.target.value })}
-                placeholder="Введіть ім'я"
-              />
+          {formErrors && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {formErrors}
             </div>
+          )}
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Прізвище *</label>
-              <input
-                type="text"
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
-                value={formData.lastname}
-                onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
-                placeholder="Введіть прізвище"
-              />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Ім'я *</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
+                  value={formData.firstname}
+                  onChange={(e) => setFormData({ ...formData, firstname: e.target.value })}
+                  placeholder="Введіть ім'я"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Прізвище *</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
+                  value={formData.lastname}
+                  onChange={(e) => setFormData({ ...formData, lastname: e.target.value })}
+                  placeholder="Введіть прізвище"
+                />
+              </div>
             </div>
 
             <div>
@@ -105,9 +133,10 @@ export const EditAuthorPage = () => {
             <div className="flex gap-3 pt-4">
               <button 
                 type="submit" 
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-70"
+                disabled={updateAuthor.isPending}
               >
-                Оновити
+                {updateAuthor.isPending ? 'Збереження...' : 'Оновити'}
               </button>
               <button 
                 type="button" 

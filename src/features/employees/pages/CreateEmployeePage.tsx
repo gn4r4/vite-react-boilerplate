@@ -23,18 +23,19 @@ export const CreateEmployeePage = () => {
     e.preventDefault();
     setFormErrors(null);
 
-    if (!formData.firstname || !formData.lastname) {
+    // Валідація: ім'я та прізвище обов'язкові і не повинні бути пустими
+    if (!formData.firstname.trim() || !formData.lastname.trim()) {
       setFormErrors('Будь ласка, введіть ім\'я та прізвище');
       return;
     }
 
     createEmployee.mutate({
-      firstname: formData.firstname,
-      lastname: formData.lastname,
-      patronymic: formData.patronymic || undefined,
-      contact: formData.contact,
-      address: formData.address,
-      id_position: formData.position ? Number(formData.position) : undefined,
+      firstname: formData.firstname.trim(),
+      lastname: formData.lastname.trim(),
+      patronymic: formData.patronymic.trim() || null, // null якщо пусте
+      contact: formData.contact.trim(),
+      address: formData.address.trim(),
+      id_position: formData.position ? Number(formData.position) : null,
     });
   };
 

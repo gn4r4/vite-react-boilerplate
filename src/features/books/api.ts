@@ -4,12 +4,7 @@ import apiClient from '@/lib/axios';
 import type { IBook } from './types';
 
 // ВИПРАВЛЕНО: Інтерфейс тепер відповідає тому, що чекає бекенд (snake_case)
-interface BookPayload {
-  title?: string;
-  id_category?: number;
-  id_genre?: number;
-  id_author?: Array<number>;
-}
+import type { IBookPayload } from './types';
 
 // --- API Functions ---
 
@@ -25,13 +20,13 @@ const getBookById = async (id: number): Promise<IBook> => {
   return data.data;
 };
 
-const createBook = async (newBook: BookPayload): Promise<IBook> => {
+const createBook = async (newBook: IBookPayload): Promise<IBook> => {
   const response = await apiClient.post('/books', newBook);
   const data = response.data as { data: IBook };
   return data.data;
 };
 
-const updateBook = async ({ id, data }: { id: number; data: Partial<BookPayload> }): Promise<IBook> => {
+const updateBook = async ({ id, data }: { id: number; data: Partial<IBookPayload> }): Promise<IBook> => {
   const response = await apiClient.patch(`/books/${id}`, data);
   const responseData = response.data as { data: IBook };
   return responseData.data;
@@ -56,7 +51,7 @@ export const useBook = (id: number): UseQueryResult<IBook> =>
     enabled: !!id,
   });
 
-export const useCreateBook = (): UseMutationResult<IBook, unknown, BookPayload> => {
+export const useCreateBook = (): UseMutationResult<IBook, unknown, IBookPayload> => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -69,7 +64,7 @@ export const useCreateBook = (): UseMutationResult<IBook, unknown, BookPayload> 
   });
 };
 
-export const useUpdateBook = (): UseMutationResult<IBook, unknown, { id: number; data: Partial<BookPayload> }> => {
+export const useUpdateBook = (): UseMutationResult<IBook, unknown, { id: number; data: Partial<IBookPayload> }> => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 

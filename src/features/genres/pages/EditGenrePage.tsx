@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
 import { useGenre, useUpdateGenre } from '../api';
+import type { IGenrePayload, IGenre } from '../types';
 
 export const EditGenrePage = () => {
   const { genreId } = useParams({ strict: false });
@@ -13,6 +14,8 @@ export const EditGenrePage = () => {
     name: '',
   });
 
+  const [formErrors, setFormErrors] = useState<string | null>(null);
+
   useEffect(() => {
     if (genre) {
       setFormData({
@@ -23,10 +26,24 @@ export const EditGenrePage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormErrors(null);
+
+    // Валідація
+    if (!formData.name.trim()) {
+      setFormErrors('Назва жанру не може бути порожньою');
+      return;
+    }
+
+    const payload: IGenrePayload = {
+      name: formData.name.trim(),
+    };
+
     updateGenre.mutate({ 
       id: Number(genreId), 
-      data: {
-        name: formData.name,
+      data: payload as unknown as Partial<IGenre>
+    }, {
+      onError: () => {
+        setFormErrors('Помилка при оновленні жанру.');
       }
     });
   };
@@ -45,6 +62,12 @@ export const EditGenrePage = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Редагувати жанр</h1>
           <p className="text-gray-600 mb-6">Оновіть інформацію про жанр</p>
 
+          {formErrors && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {formErrors}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Назва *</label>
@@ -53,7 +76,10 @@ export const EditGenrePage = () => {
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, name: e.target.value });
+                  if (formErrors) setFormErrors(null);
+                }}
                 placeholder="Введіть назву жанру"
               />
             </div>
@@ -61,9 +87,10 @@ export const EditGenrePage = () => {
             <div className="flex gap-3 pt-4">
               <button 
                 type="submit" 
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed"
+                disabled={updateGenre.isPending}
               >
-                Оновити
+                {updateGenre.isPending ? 'Збереження...' : 'Оновити'}
               </button>
               <button 
                 type="button" 

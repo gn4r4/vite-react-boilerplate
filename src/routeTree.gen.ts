@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsersIndexRouteImport } from './routes/users/index'
+import { Route as SuppliersIndexRouteImport } from './routes/suppliers/index'
 import { Route as ShelvesIndexRouteImport } from './routes/shelves/index'
 import { Route as ReadersIndexRouteImport } from './routes/readers/index'
 import { Route as PublishersIndexRouteImport } from './routes/publishers/index'
@@ -29,6 +30,8 @@ import { Route as BooksIndexRouteImport } from './routes/books/index'
 import { Route as AuthorsIndexRouteImport } from './routes/authors/index'
 import { Route as UsersNewRouteImport } from './routes/users/new'
 import { Route as UsersUserIdRouteImport } from './routes/users/$userId'
+import { Route as SuppliersNewRouteImport } from './routes/suppliers/new'
+import { Route as SuppliersSupplierIdRouteImport } from './routes/suppliers/$supplierId'
 import { Route as ShelvesNewRouteImport } from './routes/shelves/new'
 import { Route as ShelvesShelfIdRouteImport } from './routes/shelves/$shelfId'
 import { Route as ReadersNewRouteImport } from './routes/readers/new'
@@ -73,6 +76,11 @@ const IndexRoute = IndexRouteImport.update({
 const UsersIndexRoute = UsersIndexRouteImport.update({
   id: '/users/',
   path: '/users/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuppliersIndexRoute = SuppliersIndexRouteImport.update({
+  id: '/suppliers/',
+  path: '/suppliers/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShelvesIndexRoute = ShelvesIndexRouteImport.update({
@@ -158,6 +166,16 @@ const UsersNewRoute = UsersNewRouteImport.update({
 const UsersUserIdRoute = UsersUserIdRouteImport.update({
   id: '/users/$userId',
   path: '/users/$userId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuppliersNewRoute = SuppliersNewRouteImport.update({
+  id: '/suppliers/new',
+  path: '/suppliers/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuppliersSupplierIdRoute = SuppliersSupplierIdRouteImport.update({
+  id: '/suppliers/$supplierId',
+  path: '/suppliers/$supplierId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ShelvesNewRoute = ShelvesNewRouteImport.update({
@@ -344,6 +362,8 @@ export interface FileRoutesByFullPath {
   '/readers/new': typeof ReadersNewRoute
   '/shelves/$shelfId': typeof ShelvesShelfIdRoute
   '/shelves/new': typeof ShelvesNewRoute
+  '/suppliers/$supplierId': typeof SuppliersSupplierIdRoute
+  '/suppliers/new': typeof SuppliersNewRoute
   '/users/$userId': typeof UsersUserIdRoute
   '/users/new': typeof UsersNewRoute
   '/authors': typeof AuthorsIndexRoute
@@ -361,6 +381,7 @@ export interface FileRoutesByFullPath {
   '/publishers': typeof PublishersIndexRoute
   '/readers': typeof ReadersIndexRoute
   '/shelves': typeof ShelvesIndexRoute
+  '/suppliers': typeof SuppliersIndexRoute
   '/users': typeof UsersIndexRoute
 }
 export interface FileRoutesByTo {
@@ -396,6 +417,8 @@ export interface FileRoutesByTo {
   '/readers/new': typeof ReadersNewRoute
   '/shelves/$shelfId': typeof ShelvesShelfIdRoute
   '/shelves/new': typeof ShelvesNewRoute
+  '/suppliers/$supplierId': typeof SuppliersSupplierIdRoute
+  '/suppliers/new': typeof SuppliersNewRoute
   '/users/$userId': typeof UsersUserIdRoute
   '/users/new': typeof UsersNewRoute
   '/authors': typeof AuthorsIndexRoute
@@ -413,6 +436,7 @@ export interface FileRoutesByTo {
   '/publishers': typeof PublishersIndexRoute
   '/readers': typeof ReadersIndexRoute
   '/shelves': typeof ShelvesIndexRoute
+  '/suppliers': typeof SuppliersIndexRoute
   '/users': typeof UsersIndexRoute
 }
 export interface FileRoutesById {
@@ -449,6 +473,8 @@ export interface FileRoutesById {
   '/readers/new': typeof ReadersNewRoute
   '/shelves/$shelfId': typeof ShelvesShelfIdRoute
   '/shelves/new': typeof ShelvesNewRoute
+  '/suppliers/$supplierId': typeof SuppliersSupplierIdRoute
+  '/suppliers/new': typeof SuppliersNewRoute
   '/users/$userId': typeof UsersUserIdRoute
   '/users/new': typeof UsersNewRoute
   '/authors/': typeof AuthorsIndexRoute
@@ -466,6 +492,7 @@ export interface FileRoutesById {
   '/publishers/': typeof PublishersIndexRoute
   '/readers/': typeof ReadersIndexRoute
   '/shelves/': typeof ShelvesIndexRoute
+  '/suppliers/': typeof SuppliersIndexRoute
   '/users/': typeof UsersIndexRoute
 }
 export interface FileRouteTypes {
@@ -503,6 +530,8 @@ export interface FileRouteTypes {
     | '/readers/new'
     | '/shelves/$shelfId'
     | '/shelves/new'
+    | '/suppliers/$supplierId'
+    | '/suppliers/new'
     | '/users/$userId'
     | '/users/new'
     | '/authors'
@@ -520,6 +549,7 @@ export interface FileRouteTypes {
     | '/publishers'
     | '/readers'
     | '/shelves'
+    | '/suppliers'
     | '/users'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -555,6 +585,8 @@ export interface FileRouteTypes {
     | '/readers/new'
     | '/shelves/$shelfId'
     | '/shelves/new'
+    | '/suppliers/$supplierId'
+    | '/suppliers/new'
     | '/users/$userId'
     | '/users/new'
     | '/authors'
@@ -572,6 +604,7 @@ export interface FileRouteTypes {
     | '/publishers'
     | '/readers'
     | '/shelves'
+    | '/suppliers'
     | '/users'
   id:
     | '__root__'
@@ -607,6 +640,8 @@ export interface FileRouteTypes {
     | '/readers/new'
     | '/shelves/$shelfId'
     | '/shelves/new'
+    | '/suppliers/$supplierId'
+    | '/suppliers/new'
     | '/users/$userId'
     | '/users/new'
     | '/authors/'
@@ -624,6 +659,7 @@ export interface FileRouteTypes {
     | '/publishers/'
     | '/readers/'
     | '/shelves/'
+    | '/suppliers/'
     | '/users/'
   fileRoutesById: FileRoutesById
 }
@@ -660,6 +696,8 @@ export interface RootRouteChildren {
   ReadersNewRoute: typeof ReadersNewRoute
   ShelvesShelfIdRoute: typeof ShelvesShelfIdRoute
   ShelvesNewRoute: typeof ShelvesNewRoute
+  SuppliersSupplierIdRoute: typeof SuppliersSupplierIdRoute
+  SuppliersNewRoute: typeof SuppliersNewRoute
   UsersUserIdRoute: typeof UsersUserIdRoute
   UsersNewRoute: typeof UsersNewRoute
   AuthorsIndexRoute: typeof AuthorsIndexRoute
@@ -677,6 +715,7 @@ export interface RootRouteChildren {
   PublishersIndexRoute: typeof PublishersIndexRoute
   ReadersIndexRoute: typeof ReadersIndexRoute
   ShelvesIndexRoute: typeof ShelvesIndexRoute
+  SuppliersIndexRoute: typeof SuppliersIndexRoute
   UsersIndexRoute: typeof UsersIndexRoute
 }
 
@@ -701,6 +740,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/users'
       preLoaderRoute: typeof UsersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/suppliers/': {
+      id: '/suppliers/'
+      path: '/suppliers'
+      fullPath: '/suppliers'
+      preLoaderRoute: typeof SuppliersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shelves/': {
@@ -820,6 +866,20 @@ declare module '@tanstack/react-router' {
       path: '/users/$userId'
       fullPath: '/users/$userId'
       preLoaderRoute: typeof UsersUserIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/suppliers/new': {
+      id: '/suppliers/new'
+      path: '/suppliers/new'
+      fullPath: '/suppliers/new'
+      preLoaderRoute: typeof SuppliersNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/suppliers/$supplierId': {
+      id: '/suppliers/$supplierId'
+      path: '/suppliers/$supplierId'
+      fullPath: '/suppliers/$supplierId'
+      preLoaderRoute: typeof SuppliersSupplierIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/shelves/new': {
@@ -1068,6 +1128,8 @@ const rootRouteChildren: RootRouteChildren = {
   ReadersNewRoute: ReadersNewRoute,
   ShelvesShelfIdRoute: ShelvesShelfIdRoute,
   ShelvesNewRoute: ShelvesNewRoute,
+  SuppliersSupplierIdRoute: SuppliersSupplierIdRoute,
+  SuppliersNewRoute: SuppliersNewRoute,
   UsersUserIdRoute: UsersUserIdRoute,
   UsersNewRoute: UsersNewRoute,
   AuthorsIndexRoute: AuthorsIndexRoute,
@@ -1085,6 +1147,7 @@ const rootRouteChildren: RootRouteChildren = {
   PublishersIndexRoute: PublishersIndexRoute,
   ReadersIndexRoute: ReadersIndexRoute,
   ShelvesIndexRoute: ShelvesIndexRoute,
+  SuppliersIndexRoute: SuppliersIndexRoute,
   UsersIndexRoute: UsersIndexRoute,
 }
 export const routeTree = rootRouteImport

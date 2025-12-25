@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from '@tanstack/react-router';
 import { useEmployee, useUpdateEmployee } from '../api';
 import { usePositions } from '../../positions/api';
+import type { IEmployeePayload, IEmployee } from '../types';
 
 export const EditEmployeePage = () => {
   const { employeeId } = useParams({ from: '/employees/$employeeId' });
@@ -40,21 +41,23 @@ export const EditEmployeePage = () => {
     e.preventDefault();
     setFormErrors(null);
 
-    if (!formData.firstname || !formData.lastname) {
+    if (!formData.firstname.trim() || !formData.lastname.trim()) {
       setFormErrors('Будь ласка, введіть ім\'я та прізвище');
       return;
     }
 
+    const payload: IEmployeePayload = {
+      firstname: formData.firstname.trim(),
+      lastname: formData.lastname.trim(),
+      patronymic: formData.patronymic.trim() || null,
+      contact: formData.contact.trim(),
+      address: formData.address.trim(),
+      id_position: formData.position ? Number(formData.position) : null,
+    };
+
     updateEmployee.mutate({
       id,
-      data: {
-        firstname: formData.firstname,
-        lastname: formData.lastname,
-        patronymic: formData.patronymic || undefined,
-        contact: formData.contact,
-        address: formData.address,
-        id_position: formData.position ? Number(formData.position) : undefined,
-      }
+      data: payload as unknown as Partial<IEmployee>,
     });
   };
 
@@ -89,7 +92,6 @@ export const EditEmployeePage = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Ім'я */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Ім'я *</label>
                 <input
@@ -101,7 +103,6 @@ export const EditEmployeePage = () => {
                 />
               </div>
 
-              {/* Прізвище */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">Прізвище *</label>
                 <input
@@ -114,7 +115,6 @@ export const EditEmployeePage = () => {
               </div>
             </div>
 
-            {/* По-батькові */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">По-батькові</label>
               <input
@@ -125,7 +125,6 @@ export const EditEmployeePage = () => {
               />
             </div>
 
-            {/* Контакт */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Контакт</label>
               <input
@@ -136,7 +135,6 @@ export const EditEmployeePage = () => {
               />
             </div>
 
-            {/* Адреса */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Адреса</label>
               <textarea
@@ -147,7 +145,6 @@ export const EditEmployeePage = () => {
               />
             </div>
 
-            {/* Посада */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Посада</label>
               <select
@@ -164,13 +161,13 @@ export const EditEmployeePage = () => {
               </select>
             </div>
 
-            {/* Кнопки */}
             <div className="flex gap-3 pt-4">
               <button 
                 type="submit" 
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                disabled={updateEmployee.isPending}
+                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
               >
-                Оновити
+                {updateEmployee.isPending ? 'Збереження...' : 'Оновити'}
               </button>
               <button 
                 type="button" 

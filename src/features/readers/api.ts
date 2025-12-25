@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import apiClient from '../../lib/axios';
+import apiClient from '@/lib/axios';
 import { IReader } from './types';
 
 // --- API Functions ---
@@ -14,7 +14,7 @@ const getReaderById = async (id: number): Promise<IReader> => {
   return response.data.data;
 };
 
-const createReader = async (newReader: any): Promise<IReader> => {
+const createReader = async (newReader: Partial<IReader>): Promise<IReader> => {
   const response = await apiClient.post('/readers', newReader);
   return response.data.data;
 };

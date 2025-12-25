@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import apiClient from '../../lib/axios';
+import apiClient from '@/lib/axios';
 import { IGenre } from './types';
 
 // --- API Functions ---
@@ -14,7 +14,7 @@ const getGenreById = async (id: number): Promise<IGenre> => {
   return response.data.data;
 };
 
-const createGenre = async (newGenre: any): Promise<IGenre> => {
+const createGenre = async (newGenre: Partial<IGenre>): Promise<IGenre> => {
   const response = await apiClient.post('/genres', newGenre);
   return response.data.data;
 };

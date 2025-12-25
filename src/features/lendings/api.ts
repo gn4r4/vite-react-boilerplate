@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import apiClient from '../../lib/axios';
-import { ILending } from './types';
+import { ILending, ILendingPayload } from './types';
 
 // --- API Functions ---
 const getLendings = async (): Promise<ILending[]> => {
@@ -14,12 +14,14 @@ const getLendingById = async (id: number): Promise<ILending> => {
   return response.data.data;
 };
 
-const createLending = async (newLending: any): Promise<ILending> => {
-  const response = await apiClient.post('/lendings', newLending);
+// Приймаємо payload напряму
+const createLending = async (payload: ILendingPayload): Promise<ILending> => {
+  const response = await apiClient.post('/lendings', payload);
   return response.data.data;
 };
 
-const updateLending = async ({ id, data }: { id: number; data: Partial<ILending> }): Promise<ILending> => {
+// Update приймає Partial від Payload для гнучкості
+const updateLending = async ({ id, data }: { id: number; data: Partial<ILendingPayload> }): Promise<ILending> => {
   const response = await apiClient.patch(`/lendings/${id}`, data);
   return response.data.data;
 };
@@ -62,6 +64,7 @@ export const useUpdateLending = () => {
     mutationFn: updateLending,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lendings'] });
+      // Можна залишитись на сторінці або перейти до списку
       navigate({ to: '/lendings' });
     },
   });

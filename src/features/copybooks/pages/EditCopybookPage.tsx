@@ -3,6 +3,7 @@ import { useParams, useNavigate } from '@tanstack/react-router';
 import { useCopybook, useUpdateCopybook } from '../api';
 import { useShelves } from '../../shelves/api';
 import { useLocations } from '../../locations/api';
+import type { CopybookPayload } from '../types';
 
 export const EditCopybookPage = () => {
   const { copybookId } = useParams({ from: '/copybooks/$copybookId' });
@@ -25,45 +26,49 @@ export const EditCopybookPage = () => {
     if (copybook) {
       setFormData({
         status: copybook.status,
-        // Якщо у книги є location з shelf, беремо shelf ID. Інакше - порожній рядок.
         id_shelf: copybook.location?.shelf?.id ? String(copybook.location.shelf.id) : '',
       });
     }
   }, [copybook]);
 
-  // Фільтр: вільні локації АБО поточна локація цієї книги
-  // (Потрібно для коректної роботи логіки "locationsForShelf" нижче)
-  const freeLocations = locations?.filter(
+  // Список всіх локацій, які або вільні, або зайняті САМЕ ЦІЄЮ книгою
+  const availableLocations = locations?.filter(
     loc => !loc.copybook || (copybook?.location && loc.id === copybook.location.id)
   ) || [];
 
-  // Доступні локації для ВИБРАНОЇ полиці (використовується при submit)
+  // Локації на конкретній обраній полиці
   const locationsForShelf = formData.id_shelf
-    ? freeLocations.filter(loc => String(loc.shelf?.id) === String(formData.id_shelf))
+    ? availableLocations.filter(loc => String(loc.shelf?.id) === String(formData.id_shelf))
     : [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFormErrors(null);
 
-    // Якщо обрана полиця, беремо першу доступну локацію, інакше - null (прибрати з полиці)
     let selectedLocationId: number | null = null;
-    if (formData.id_shelf && locationsForShelf.length > 0) {
-      selectedLocationId = locationsForShelf[0].id;
+
+    if (formData.id_shelf) {
+      // Якщо обрана полиця, беремо перше доступне місце (або поточне, якщо воно там)
+      if (locationsForShelf.length > 0) {
+        selectedLocationId = locationsForShelf[0].id;
+      } else {
+        setFormErrors('На обраній полиці немає вільних місць!');
+        return;
+      }
+    } else {
+      // Якщо полиця не обрана, значить прибираємо з місця
+      selectedLocationId = null;
     }
-    
-    // Якщо користувач вибрав полицю, але там немає місць (теоретично неможливо через фільтр, але про всяк випадок)
-    if (formData.id_shelf && !selectedLocationId) {
-       setFormErrors('На обраній полиці немає вільних місць!');
-       return;
-    }
+
+    // Формування payload
+    const payload: CopybookPayload = {
+        status: formData.status,
+        id_location: selectedLocationId // number | null
+    };
 
     updateCopybookMutation.mutate({
       id,
-      data: {
-        status: formData.status,
-        id_location: selectedLocationId // Буде null, якщо полиця не вибрана, або число ID
-      }
+      data: payload
     });
   };
 
@@ -101,8 +106,11 @@ export const EditCopybookPage = () => {
             {/* Назва книги */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Назва книги</label>
-              <div className="p-3 bg-gray-100 rounded-lg text-gray-600">
-                {copybook?.edition?.book?.title} ({copybook?.edition?.yearPublication})
+              <div className="p-3 bg-gray-100 rounded-lg text-gray-600 font-medium">
+                {copybook?.edition?.book?.title || 'Назва невідома'} 
+                <span className="text-gray-400 font-normal ml-2">
+                    ({copybook?.edition?.yearPublication ? new Date(copybook.edition.yearPublication).getFullYear() : 'рік не вказано'})
+                </span>
               </div>
             </div>
 
@@ -117,46 +125,47 @@ export const EditCopybookPage = () => {
                 <option value="доступний">Доступний</option>
                 <option value="виданий">Виданий</option>
                 <option value="реставрується">Реставрація</option>
+                <option value="списаний">Списаний</option>
               </select>
             </div>
 
             {/* Полиця */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Полиця <span className="text-gray-400 font-normal">(необов'язково)</span>
+                Полиця <span className="text-gray-400 font-normal">(де зберігається книга)</span>
               </label>
               <select
                 value={formData.id_shelf}
                 onChange={(e) => setFormData({ ...formData, id_shelf: e.target.value })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none transition bg-white"
               >
-                <option value="">-- Без місця (Прибрати з полиці) --</option>
+                <option value="">-- Без місця (Зняти з полиці) --</option>
                 
-                {/* ФІЛЬТРАЦІЯ: показуємо тільки полиці з вільними місцями АБО поточну полицю */}
                 {shelves
                   ?.filter((shelf) => {
-                    const hasFreeSpace = freeLocations.some(loc => loc.shelf?.id === shelf.id);
-                    const isCurrentShelf = copybook?.location?.shelf?.id === shelf.id;
-                    return hasFreeSpace || isCurrentShelf;
+                    // Показуємо тільки полиці, де є вільні місця АБО де ця книга вже лежить
+                    const hasFreeSpace = availableLocations.some(loc => loc.shelf?.id === shelf.id);
+                    return hasFreeSpace;
                   })
                   .map((shelf) => (
                     <option key={shelf.id} value={shelf.id}>
-                      {shelf.cabinet?.name || '?'}, Полиця: {shelf.shelfcode}
-                      {copybook?.location?.shelf?.id === shelf.id ? ' (Поточна)' : ''}
+                      {(shelf.cabinet as any)?.name || '?'}, Полиця: {shelf.shelfcode}
+                      {copybook?.location?.shelf?.id === shelf.id ? ' (Поточне місце)' : ''}
                     </option>
                   ))}
               </select>
             </div>
 
-            {/* Показуємо інформацію про вибір локації */}
+            {/* Інформаційний блок про місце */}
             {formData.id_shelf && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <strong>Автоматичний вибір:</strong> Книга буде розміщена на{' '}
-                  {locationsForShelf.length > 0
-                    ? `позиції ${locationsForShelf[0].id} на обраній полиці`
-                    : 'цій полиці (немає вільних місць)'}
-                </p>
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
+                  {locationsForShelf.length > 0 ? (
+                      <>
+                        <strong>Готово до переміщення:</strong> Книга буде автоматично закріплена за вільним місцем #{locationsForShelf[0].id} на цій полиці.
+                      </>
+                  ) : (
+                      <span className="text-red-600 font-bold">Увага: На цій полиці немає вільних місць!</span>
+                  )}
               </div>
             )}
 

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from '@tanstack/react-router';
 import { useEdition, useUpdateEdition } from '../api';
 import { usePublishers } from '../../publishers/api';
 import { useBooks } from '../../books/api';
-import { IEdition, IEditionPayload } from '../types';
+import type { IEdition, IEditionPayload } from '../types';
 
 export const EditEditionPage = () => {
   const { editionId } = useParams({ from: '/editions/$editionId' });
@@ -19,32 +19,51 @@ export const EditEditionPage = () => {
     book: null,
     publisher: null,
     yearPublication: new Date(),
+    ISBN: '',
+    pages: null
   });
+
+  const [formErrors, setFormErrors] = useState<string | null>(null);
 
   useEffect(() => {
     if (edition) {
       setFormData({
         ...edition,
-        yearPublication: new Date(edition.yearPublication)
+        yearPublication: new Date(edition.yearPublication),
+        ISBN: edition.ISBN || '',
+        pages: edition.pages || null
       });
     }
   }, [edition]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormErrors(null);
     
     if (formData.book?.id && formData.publisher?.id) {
       const payload: IEditionPayload = {
         id_book: Number(formData.book.id),
         id_publisher: Number(formData.publisher.id),
-        yearpublication: formData.yearPublication 
-            ? new Date(formData.yearPublication).toISOString().split('T')[0] 
-            : new Date().toISOString().split('T')[0]
+        yearpublication: formData.yearPublication
+            ? new Date(formData.yearPublication).toISOString().split('T')[0]
+            : new Date().toISOString().split('T')[0],
+        ISBN: formData.ISBN?.trim() || null,
+        pages: formData.pages ? Number(formData.pages) : null
       };
 
-      // Типи тепер збігаються
-      updateEdition.mutate({ id, data: payload });
+      updateEdition.mutate({ id, data: payload }, {
+          onError: () => {
+              setFormErrors("Помилка при оновленні видання");
+          }
+      });
+    } else {
+        setFormErrors("Будь ласка, заповніть всі обов'язкові поля");
     }
+  };
+
+  const getDateString = (date?: Date) => {
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) return '';
+    return date.toISOString().split('T')[0];
   };
 
   if (isLoading)
@@ -61,8 +80,13 @@ export const EditEditionPage = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Редагувати видання</h1>
           <p className="text-gray-600 mb-6">Оновіть інформацію про видання</p>
 
+          {formErrors && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {formErrors}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* ... Поля форми ідентичні CreateEditionPage (Книга, Видавець, Рік) ... */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Книга *</label>
               <select
@@ -103,22 +127,46 @@ export const EditEditionPage = () => {
               </select>
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Рік видання</label>
+                <input
+                  type="date"
+                  required
+                  value={getDateString(formData.yearPublication)}
+                  onChange={(e) => setFormData(prev => ({ ...prev, yearPublication: new Date(e.target.value) }))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none transition"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Сторінок</label>
+                <input
+                  type="number"
+                  min="1"
+                  value={formData.pages || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, pages: e.target.value ? Number(e.target.value) : null }))}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none transition"
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Рік видання</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">ISBN</label>
               <input
-                type="date"
-                value={formData.yearPublication instanceof Date && !isNaN(formData.yearPublication.getTime()) 
-                    ? formData.yearPublication.toISOString().split('T')[0] 
-                    : ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, yearPublication: new Date(e.target.value) }))}
+                type="text"
+                value={formData.ISBN || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, ISBN: e.target.value }))}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none transition"
+                placeholder="ISBN"
               />
             </div>
 
             <div className="flex gap-3 pt-4">
               <button
                 type="submit"
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-70"
                 disabled={updateEdition.isPending}
               >
                 {updateEdition.isPending ? 'Збереження...' : 'Оновити'}

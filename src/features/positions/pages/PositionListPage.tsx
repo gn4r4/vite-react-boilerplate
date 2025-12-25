@@ -1,9 +1,47 @@
+import { useState, useMemo } from 'react';
 import { Link } from '@tanstack/react-router';
 import { usePositions, useDeletePosition } from '../api';
+import { IPosition } from '../types';
 
 export const PositionsListPage = () => {
   const { data: positions, isLoading, error } = usePositions();
   const deletePosition = useDeletePosition();
+
+  // Стейт для пошуку та сортування
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ direction: 'asc' | 'desc' } | null>(null);
+
+  // Обробник сортування
+  const handleSort = () => {
+    setSortConfig((current) => ({
+      direction: current?.direction === 'asc' ? 'desc' : 'asc',
+    }));
+  };
+
+  // Мемоізація даних (фільтрація + сортування)
+  const processedPositions = useMemo(() => {
+    if (!positions) return [];
+
+    let result = [...positions];
+
+    // 1. Фільтрація
+    if (searchQuery) {
+      const lowerQuery = searchQuery.toLowerCase();
+      result = result.filter((pos) => 
+        pos.name.toLowerCase().includes(lowerQuery)
+      );
+    }
+
+    // 2. Сортування
+    if (sortConfig) {
+      result.sort((a, b) => {
+        const comparison = a.name.localeCompare(b.name, 'uk');
+        return sortConfig.direction === 'asc' ? comparison : -comparison;
+      });
+    }
+
+    return result;
+  }, [positions, searchQuery, sortConfig]);
 
   if (isLoading) 
     return (
@@ -26,7 +64,9 @@ export const PositionsListPage = () => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold text-gray-900">Посади</h1>
-            <p className="text-gray-600 mt-2">Всього посад: {positions?.length || 0}</p>
+            <p className="text-gray-600 mt-2">
+              Знайдено посад: {processedPositions.length} (Всього: {positions?.length || 0})
+            </p>
           </div>
           <Link 
             to="/positions/new" 
@@ -36,18 +76,34 @@ export const PositionsListPage = () => {
           </Link>
         </div>
 
+        {/* Search Bar */}
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Пошук за назвою посади..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all"
+          />
+        </div>
+
         {/* Table */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          {positions && positions.length > 0 ? (
+          {processedPositions.length > 0 ? (
             <table className="w-full">
               <thead className="bg-gray-100 border-b">
                 <tr>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Назва</th>
+                  <th 
+                    onClick={handleSort}
+                    className="px-6 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors select-none"
+                  >
+                    Назва {sortConfig && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                  </th>
                   <th className="px-6 py-3 text-right text-sm font-semibold text-gray-700">Дії</th>
                 </tr>
               </thead>
               <tbody>
-                {positions.map((position, index) => (
+                {processedPositions.map((position, index) => (
                   <tr 
                     key={position.id} 
                     className={`border-b hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
@@ -55,14 +111,15 @@ export const PositionsListPage = () => {
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{position.name}</td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <Link 
-                        to={`/positions/${position.id}`}
+                        to="/positions/$positionId"
+                        params={{ positionId: position.id.toString() }}
                         className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium transition-colors"
                       >
                         Редагувати
                       </Link>
                       <button 
                         onClick={() => {
-                          if (window.confirm('Ви впевнені?')) {
+                          if (window.confirm(`Ви впевнені, що хочете видалити посаду "${position.name}"?`)) {
                             deletePosition.mutate(position.id);
                           }
                         }}
@@ -77,7 +134,9 @@ export const PositionsListPage = () => {
             </table>
           ) : (
             <div className="p-8 text-center text-gray-600">
-              <p className="text-lg">Посад не знайдено</p>
+              <p className="text-lg">
+                {searchQuery ? 'За вашим запитом нічого не знайдено' : 'Посад не знайдено'}
+              </p>
             </div>
           )}
         </div>

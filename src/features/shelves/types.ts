@@ -5,3 +5,8 @@ export interface IShelf {
   shelfcode: string;
   cabinet: ICabinet | null;
 }
+
+export interface IShelfPayload {
+  shelfcode: string;
+  id_cabinet?: number;
+}

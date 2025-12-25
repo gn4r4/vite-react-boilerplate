@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import apiClient from '../../lib/axios';
-import { IOrder } from './types';
+import apiClient from '@/lib/axios';
+import { IOrder, IOrderPayload, IOrderEditionsPayload } from './types';
 
 // --- API Functions ---
 const getOrders = async (): Promise<IOrder[]> => {
@@ -14,36 +14,14 @@ const getOrderById = async (id: number): Promise<IOrder> => {
   return response.data.data;
 };
 
-const createOrder = async (newOrder: Partial<IOrder>): Promise<IOrder> => {
-  // Трансформація даних для бекенду
-  const payload = {
-    dateorder: newOrder.dateOrder, // Бекенд чекає dateorder (lowercase)
-    status: newOrder.status,
-    details: newOrder.items?.map(item => ({
-      editionId: item.edition.id,
-      quantity: item.quantity
-    })) || []
-  };
 
-  const response = await apiClient.post('/orders', payload);
+const createOrder = async (newOrder: IOrderPayload): Promise<IOrder> => {
+  const response = await apiClient.post('/orders', newOrder);
   return response.data.data;
 };
 
-const updateOrder = async ({ id, data }: { id: number; data: Partial<IOrder> }): Promise<IOrder> => {
-  // Трансформація даних для бекенду
-  const payload: any = {};
-
-  if (data.dateOrder) payload.dateorder = data.dateOrder;
-  if (data.status) payload.status = data.status;
-  
-  if (data.items) {
-    payload.details = data.items.map(item => ({
-      editionId: item.edition.id,
-      quantity: item.quantity
-    }));
-  }
-
-  const response = await apiClient.patch(`/orders/${id}`, payload);
+const updateOrder = async ({ id, data }: { id: number; data: Partial<IOrderPayload> }): Promise<IOrder> => {
+  const response = await apiClient.patch(`/orders/${id}`, data);
   return response.data.data;
 };
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useCreateReader } from '../api';
+import type { IReaderPayload, IReader } from '../types';
 
 export const CreateReaderPage = () => {
   const navigate = useNavigate();
@@ -20,18 +21,22 @@ export const CreateReaderPage = () => {
     e.preventDefault();
     setFormErrors(null);
 
-    if (!formData.firstname || !formData.lastname) {
+    // Валідація
+    if (!formData.firstname.trim() || !formData.lastname.trim()) {
       setFormErrors('Будь ласка, введіть ім\'я та прізвище');
       return;
     }
 
-    createReader.mutate({
-      firstname: formData.firstname,
-      lastname: formData.lastname,
-      patronymic: formData.patronymic || undefined,
-      contact: formData.contact,
-      address: formData.address,
-    });
+    // Формуємо payload з очищенням пробілів
+    const payload: IReaderPayload = {
+      firstname: formData.firstname.trim(),
+      lastname: formData.lastname.trim(),
+      patronymic: formData.patronymic.trim() || null, 
+      contact: formData.contact.trim(),
+      address: formData.address.trim(),
+    };
+
+    createReader.mutate(payload as unknown as Partial<IReader>);
   };
 
   return (
@@ -122,7 +127,7 @@ export const CreateReaderPage = () => {
               <button 
                 type="submit" 
                 disabled={createReader.isPending}
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
+                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-70"
               >
                 {createReader.isPending ? 'Збереження...' : 'Додати'}
               </button>

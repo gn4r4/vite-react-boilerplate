@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from '@tanstack/react-router';
 import { useReader, useUpdateReader } from '../api';
+import type { IReaderPayload, IReader } from '../types';
 
 export const EditReaderPage = () => {
   const { readerId } = useParams({ from: '/readers/$readerId' });
@@ -26,8 +27,8 @@ export const EditReaderPage = () => {
         firstname: reader.firstname,
         lastname: reader.lastname,
         patronymic: reader.patronymic || '',
-        contact: reader.contact,
-        address: reader.address,
+        contact: reader.contact || '',
+        address: reader.address || '',
       });
     }
   }, [reader]);
@@ -36,20 +37,22 @@ export const EditReaderPage = () => {
     e.preventDefault();
     setFormErrors(null);
 
-    if (!formData.firstname || !formData.lastname) {
+    if (!formData.firstname.trim() || !formData.lastname.trim()) {
       setFormErrors('Будь ласка, введіть ім\'я та прізвище');
       return;
     }
 
+    const payload: IReaderPayload = {
+      firstname: formData.firstname.trim(),
+      lastname: formData.lastname.trim(),
+      patronymic: formData.patronymic.trim() || null,
+      contact: formData.contact.trim(),
+      address: formData.address.trim(),
+    };
+
     updateReader.mutate({
       id,
-      data: {
-        firstname: formData.firstname,
-        lastname: formData.lastname,
-        patronymic: formData.patronymic || undefined,
-        contact: formData.contact,
-        address: formData.address,
-      }
+      data: payload as unknown as Partial<IReader>
     });
   };
 

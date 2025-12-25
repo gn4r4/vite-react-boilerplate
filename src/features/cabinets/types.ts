@@ -3,3 +3,8 @@ export interface ICabinet {
   name: string;
   description: string | null;
 }
+
+export interface ICabinetPayload {
+  name: string;
+  description: string | null;
+}

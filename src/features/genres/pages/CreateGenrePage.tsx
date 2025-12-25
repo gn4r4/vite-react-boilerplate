@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useCreateGenre } from '../api';
+import type { IGenrePayload, IGenre } from '../types';
 
 export const CreateGenrePage = () => {
   const navigate = useNavigate();
@@ -10,10 +11,26 @@ export const CreateGenrePage = () => {
     name: '',
   });
 
+  const [formErrors, setFormErrors] = useState<string | null>(null);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createGenre.mutate({
-      name: formData.name,
+    setFormErrors(null);
+
+    // Валідація
+    if (!formData.name.trim()) {
+      setFormErrors('Назва жанру не може бути порожньою');
+      return;
+    }
+
+    const payload: IGenrePayload = {
+      name: formData.name.trim(),
+    };
+
+    createGenre.mutate(payload as unknown as Partial<IGenre>, {
+      onError: () => {
+        setFormErrors('Помилка при створенні жанру. Спробуйте ще раз.');
+      }
     });
   };
 
@@ -24,6 +41,12 @@ export const CreateGenrePage = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Створити жанр</h1>
           <p className="text-gray-600 mb-6">Введіть інформацію про новий жанр</p>
 
+          {formErrors && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {formErrors}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Назва *</label>
@@ -32,7 +55,10 @@ export const CreateGenrePage = () => {
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, name: e.target.value });
+                  if (formErrors) setFormErrors(null);
+                }}
                 placeholder="Введіть назву жанру"
               />
             </div>
@@ -40,9 +66,10 @@ export const CreateGenrePage = () => {
             <div className="flex gap-3 pt-4">
               <button 
                 type="submit" 
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-70 disabled:cursor-not-allowed"
+                disabled={createGenre.isPending}
               >
-                Зберегти
+                {createGenre.isPending ? 'Збереження...' : 'Зберегти'}
               </button>
               <button 
                 type="button" 

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import apiClient from '../../lib/axios';
+import apiClient from '@/lib/axios';
 import { ICategory } from './types';
 
 // --- API Functions ---
@@ -14,7 +14,7 @@ const getCategoryById = async (id: number): Promise<ICategory> => {
   return response.data.data;
 };
 
-const createCategory = async (newCategory: any): Promise<ICategory> => {
+const createCategory = async (newCategory: Partial<ICategory>): Promise<ICategory> => {
   const response = await apiClient.post('/categories', newCategory);
   return response.data.data;
 };

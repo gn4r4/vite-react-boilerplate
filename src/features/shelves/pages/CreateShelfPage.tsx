@@ -2,17 +2,19 @@ import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useCreateShelf } from '../api';
 import { useCabinets } from '../../cabinets/api';
+import type { IShelfPayload, IShelf } from '../types';
 
 export const CreateShelfPage = () => {
   const navigate = useNavigate();
   const { data: cabinets } = useCabinets();
+  const createShelf = useCreateShelf();
   
   const [formData, setFormData] = useState({
     shelfcode: '',
     id_cabinet: '',
   });
 
-  const createShelf = useCreateShelf();
+  const [formErrors, setFormErrors] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -20,15 +22,30 @@ export const CreateShelfPage = () => {
       ...prev,
       [name]: value,
     }));
+    if (formErrors) setFormErrors(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormErrors(null);
+    
+    if (!formData.shelfcode?.trim()) {
+        setFormErrors("Код полиці є обов'язковим полем");
+        return;
+    }
+    
+    if (!formData.id_cabinet) {
+        setFormErrors("Будь ласка, оберіть шафу");
+        return;
+    }
+
     if (formData.shelfcode?.trim() && formData.id_cabinet) {
-      createShelf.mutate({
-        shelfcode: formData.shelfcode,
+      const payload: IShelfPayload = {
+        shelfcode: formData.shelfcode.trim(),
         id_cabinet: Number(formData.id_cabinet),
-      });
+      };
+
+      createShelf.mutate(payload as unknown as Partial<IShelf>);
     }
   };
 
@@ -38,6 +55,12 @@ export const CreateShelfPage = () => {
         <div className="bg-white rounded-lg shadow-md p-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Створити полицю</h1>
           <p className="text-gray-600 mb-6">Введіть інформацію про нову полицю</p>
+
+          {formErrors && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {formErrors}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -74,7 +97,7 @@ export const CreateShelfPage = () => {
             <div className="flex gap-3 pt-4">
               <button 
                 type="submit" 
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-70"
                 disabled={createShelf.isPending}
               >
                 {createShelf.isPending ? 'Збереження...' : 'Зберегти'}

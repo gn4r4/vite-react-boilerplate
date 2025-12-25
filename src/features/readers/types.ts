@@ -7,3 +7,11 @@ export interface IReader {
   contact: string;
   address: string;
 }
+
+export interface IReaderPayload {
+  lastname: string;
+  firstname: string;
+  patronymic?: string | null;
+  contact: string;
+  address: string;
+}

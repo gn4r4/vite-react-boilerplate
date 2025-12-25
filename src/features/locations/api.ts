@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import apiClient from '../../lib/axios';
-import { ILocation, CreateLocationPayload, UpdateLocationPayload } from './types';
+import apiClient from '@/lib/axios';
+import { ILocation, ICreateLocationPayload, IUpdateLocationPayload } from './types';
 
 // --- API Functions ---
 
@@ -15,12 +15,12 @@ const getLocationById = async (id: number): Promise<ILocation> => {
   return response.data.data;
 };
 
-const createLocation = async (data: CreateLocationPayload): Promise<ILocation> => {
+const createLocation = async (data: ICreateLocationPayload): Promise<ILocation> => {
   const response = await apiClient.post('/locations', data);
   return response.data.data;
 };
 
-const updateLocation = async ({ id, data }: { id: number; data: UpdateLocationPayload }): Promise<ILocation> => {
+const updateLocation = async ({ id, data }: { id: number; data: IUpdateLocationPayload }): Promise<ILocation> => {
   const response = await apiClient.patch(`/locations/${id}`, data);
   return response.data.data;
 };

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import apiClient from '../../lib/axios';
+import apiClient from '@/lib/axios';
 import { ICabinet } from './types';
 
 // --- API Functions ---
@@ -14,7 +14,7 @@ const getCabinetById = async (id: number): Promise<ICabinet> => {
   return response.data.data;
 };
 
-const createCabinet = async (newCabinet: any): Promise<ICabinet> => {
+const createCabinet = async (newCabinet: Partial<ICabinet>): Promise<ICabinet> => {
   const response = await apiClient.post('/cabinets', newCabinet);
   return response.data.data;
 };

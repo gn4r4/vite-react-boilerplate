@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import apiClient from '../../lib/axios';
+import apiClient from '@/lib/axios';
 import { IPosition } from './types';
 
 // --- API Functions ---
@@ -14,7 +14,7 @@ const getPositionById = async (id: number): Promise<IPosition> => {
   return response.data.data;
 };
 
-const createPosition = async (newPosition: any): Promise<IPosition> => {
+const createPosition = async (newPosition: Partial<IPosition>): Promise<IPosition> => {
   const response = await apiClient.post('/positions', newPosition);
   return response.data.data;
 };

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import apiClient from '../../lib/axios';
+import apiClient from '@/lib/axios';
 import { IEmployee } from './types';
 
 // --- API Functions ---
@@ -14,7 +14,7 @@ const getEmployeeById = async (id: number): Promise<IEmployee> => {
   return response.data.data;
 };
 
-const createEmployee = async (newEmployee: any): Promise<IEmployee> => {
+const createEmployee = async (newEmployee: Partial<IEmployee>): Promise<IEmployee> => {
   const response = await apiClient.post('/employees', newEmployee);
   return response.data.data;
 };

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import apiClient from '../../lib/axios';
+import apiClient from '@/lib/axios';
 import { IAuthor } from './types';
 
 // --- API Functions ---
@@ -14,7 +14,7 @@ const getAuthorById = async (id: number): Promise<IAuthor> => {
   return response.data.data;
 };
 
-const createAuthor = async (newAuthor: any): Promise<IAuthor> => {
+const createAuthor = async (newAuthor: Partial<IAuthor>): Promise<IAuthor> => {
   const response = await apiClient.post('/authors', newAuthor);
   return response.data.data;
 };

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import apiClient from '../../lib/axios';
+import apiClient from '@/lib/axios';
 import { IShelf } from './types';
 
 // --- API Functions ---
@@ -14,7 +14,7 @@ const getShelfById = async (id: number): Promise<IShelf> => {
   return response.data.data;
 };
 
-const createShelf = async (newShelf: any): Promise<IShelf> => {
+const createShelf = async (newShelf: Partial<IShelf>): Promise<IShelf> => {
   const response = await apiClient.post('/shelves', newShelf);
   return response.data.data;
 };

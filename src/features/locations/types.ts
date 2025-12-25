@@ -7,12 +7,11 @@ export interface ILocation {
   copybook: ICopybook | null;
 }
 
-// Те, що відправляємо на бекенд
-export interface CreateLocationPayload {
+export interface ICreateLocationPayload {
   id_shelf: number;
-  quantity: number; // <-- Додали поле кількості
+  quantity: number;
 }
 
-export interface UpdateLocationPayload {
+export interface IUpdateLocationPayload {
   id_shelf?: number;
 }

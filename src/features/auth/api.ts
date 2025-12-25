@@ -27,11 +27,9 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: loginUser,
     onSuccess: (data) => {
-      // 1. Зберігаємо токен у Zustand (і localStorage)
       setToken(data.token);
       
-      // 2. Перенаправляємо на головну або на книги
-      navigate({ to: '/books' });
+      navigate({ to: '/' });
     },
     onError: (error) => {
       console.error('Login failed:', error);

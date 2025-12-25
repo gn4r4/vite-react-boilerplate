@@ -1,30 +1,31 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from '@tanstack/react-router';
-
-interface IUser {
-  id: number;
-  username: string;
-  email: string;
-  role: string;
-}
+import { useUser, useUpdateUser } from '../api';
+import { IUser, Role } from '../types';
 
 export const EditUserPage = () => {
   const { userId } = useParams({ from: '/users/$userId' });
   const navigate = useNavigate();
   const id = Number(userId);
 
+  const { data: user, isLoading } = useUser(id);
+  const updateUser = useUpdateUser();
+
   const [formData, setFormData] = useState<Partial<IUser>>({
     username: '',
     email: '',
-    role: 'user',
+    role: Role.USER,
   });
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [isPending, setIsPending] = useState(false);
-
   useEffect(() => {
-    setIsLoading(false);
-  }, []);
+    if (user) {
+      setFormData({
+        username: user.username,
+        email: user.email,
+        role: user.role as Role,
+      });
+    }
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -33,8 +34,14 @@ export const EditUserPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsPending(true);
-    setIsPending(false);
+    updateUser.mutate({
+      id,
+      data: {
+        username: formData.username || '',
+        email: formData.email || '',
+        role: formData.role || Role.USER,
+      },
+    });
   };
 
   if (isLoading)
@@ -82,13 +89,13 @@ export const EditUserPage = () => {
               <label className="block text-sm font-semibold text-gray-700 mb-2">Роль</label>
               <select
                 name="role"
-                value={formData.role || 'user'}
+                value={formData.role || Role.USER}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
               >
-                <option value="user">Користувач</option>
-                <option value="admin">Адміністратор</option>
-                <option value="moderator">Модератор</option>
+                <option value={Role.USER}>Користувач</option>
+                <option value={Role.ADMIN}>Адміністратор</option>
+                <option value={Role.MODERATOR}>Модератор</option>
               </select>
             </div>
 
@@ -96,9 +103,9 @@ export const EditUserPage = () => {
               <button
                 type="submit"
                 className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                disabled={isPending}
+                disabled={updateUser.isPending}
               >
-                {isPending ? 'Збереження...' : 'Оновити'}
+                {updateUser.isPending ? 'Збереження...' : 'Оновити'}
               </button>
               <button
                 type="button"
