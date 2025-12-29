@@ -155,3 +155,75 @@ pnpm run dev
 >![placeholder](<https://github.com/gn4r4/vite-react-boilerplate/blob/main/images/workshop7/3.png?raw=true>)
 
 >![placeholder](<https://github.com/gn4r4/vite-react-boilerplate/blob/main/images/workshop7/4.png?raw=true>)
+
+
+# Лабораторна-практична робота №8-9
+
+## Тема: 
+
+Full-stack інтеграція: розробка UI на базі професійного бойлерплейту
+
+## Мета:
+
+Пройти повний, реалістичний цикл розробки: від проєктування інтерфейсу до його інтеграції з REST API, використовуючи професійний набір інструментів. Навчитись керувати серверним станом за допомогою **TanStack Query**, будувати надійні форми з **React Hook Form** та **Zod**, та організовувати навігацію за допомогою **TanStack Router**.
+
+## Завдання:
+Створити повноцінний, сучасний та надійний клієнтський додаток на базі бойлерплейту **vite-react-boilerplate**. Не просто змусити UI працювати, а зробити це, використовуючи надані інструменти за їхнім прямим призначенням.
+
+### Хід роботи:
+
+#### 1. Налаштування проєкту та API-клієнта
+
+##### Налаштовуємо змінні оточення:
+
+У корені фронтенд-проєкту створюємо файл `.env `за зразком `.env.example`. Додаємо до нього адресу нашого `API`:
+
+```bash
+VITE_API_BASE_URL=<http://localhost:4000/v1>
+```
+
+Для базового завдання отримуємо токен доступу через `Postman` та додаємо його у файл: `VITE_API_AUTH_TOKEN="your.jwt.token.here"`.
+
+>![placeholder](<https://github.com/gn4r4/typeorm-express-typescript/blob/main/images/workshop8/1.png?raw=true>)
+
+##### Налаштовуємо `Axios`:
+
+Встановлюємо `Axios`:
+
+```bash
+pnpm install axios
+```
+
+Створюємо файл для налаштування (`src/lib/axios.ts`). Налаштовуємо інстанс `Axios` з `baseURL` та інтерцептором для обробки помилок.
+
+>![placeholder](<https://github.com/gn4r4/typeorm-express-typescript/blob/main/images/workshop8/2.png?raw=true>)
+
+#### 2. Організація роботи з `API` за допомогою `TanStack Query`
+
+Замість `useState + useEffect` для роботи з даними з сервера ми будемо використовувати `TanStack Query`.
+
+Створюємо хуки для запитів. Для кожної сутності створіть окремий файл з хуками, які інкапсулюють логіку запитів.
+
+>![placeholder](<https://github.com/gn4r4/typeorm-express-typescript/blob/main/images/workshop8/3.png?raw=true>)
+
+#### 3. Налаштування маршрутизації за допомогою `TanStack Router`
+
+Визначаємо маршрути для сторінок нашого додатку. Оскільки бойлерплейт використовує файлову систему для маршрутизації, нам потрібно буде лише додати свої файли роутів у відповідну структуру src/routes
+
+>![placeholder](<https://github.com/gn4r4/typeorm-express-typescript/blob/main/images/workshop8/4.png?raw=true>)
+
+#### 4. Реалізація `UI` для `CRUD-операцій`
+
+Створюємо сторінки, використовуючи заздалегіть підготовлені хуки та інструменти. Для кожної сутності у відповідну структуру `src/features/entity/pages` створюємо три сторінки: `EntityListPage.tsx`; `CreateEntityPage.tsx`; `EditEntityPage.tsx`.
+
+>![placeholder](<https://github.com/gn4r4/typeorm-express-typescript/blob/main/images/workshop8/5.png?raw=true>)
+
+#### 5. Реалізація `UI` для логіну
+
+Створюємо файл `src/store/authStore.ts`. Ми використаємо `middleware persist`, щоб токен зберігався в `localStorage` і не зникав після оновлення сторінки.
+
+Оновлюємо `Axios` (динамічний токен). `Axios` має брати токен не з `.env`, а зі сховища `Zustand`
+
+Створюємо сторінку логіну (`/login`) з формою на базі `React Hook Form`. У відповідну директорію (`src/features/auth/`) створюємо `API` (`api.ts`) та мутацію `useLogin` для надсилання запиту на `/auth/login`. Створюємо файл типів (`types.ts`)
+
+Створюємо сторінку логіну (`pages/LoginPage.tsx`). Додаємо маршрут (`src/routes/login.tsx`).
