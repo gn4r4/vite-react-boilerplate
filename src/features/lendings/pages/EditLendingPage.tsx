@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from '@tanstack/react-router';
+import { useParams, useNavigate, Link } from '@tanstack/react-router';
 import { useLending, useUpdateLending } from '../api';
 import type { ILendingPayload } from '../types';
 
 export const EditLendingPage = () => {
-  const { lendingId } = useParams({ from: '/lendings/$lendingId' });
+  const { lendingId } = useParams({ strict: false });
   const navigate = useNavigate();
   const id = Number(lendingId);
 
@@ -15,7 +15,7 @@ export const EditLendingPage = () => {
   const [dateReturn, setDateReturn] = useState<string>('');
   const [dateReturnPlanned, setDateReturnPlanned] = useState<string>('');
   
-  // booksToReturn - список ID книг, які користувач позначає як "повернути зараз"
+  // booksToReturn - list of copybook IDs marked as "return now"
   const [booksToReturn, setBooksToReturn] = useState<number[]>([]);
 
   const isClosed = !!lending?.dateReturn;
@@ -81,15 +81,13 @@ export const EditLendingPage = () => {
         return;
     }
 
-    // Список книг, які ЗАЛИШАЮТЬСЯ в активному стані
     const remainingBooksIds = lending.copybooks
       .filter(cb => !cb.dateReturnActual && !booksToReturn.includes(cb.id))
       .map(cb => cb.id);
 
     let finalDateReturn = dateReturn ? dateReturn : null;
     
-    // Логіка: Якщо всі книги повернуто, закриваємо всю видачу сьогоднішньою датою
-    // (якщо користувач сам не вказав іншу дату)
+    // Auto-close if all books returned
     const allBooksWillBeReturned = remainingBooksIds.length === 0;
     if (allBooksWillBeReturned && !finalDateReturn) {
         const today = new Date();
@@ -104,104 +102,143 @@ export const EditLendingPage = () => {
         datelending: lending.dateLending.toString(),
         datereturn: finalDateReturn,
         datereturn_planned: dateReturnPlanned,
-        id_copybook: remainingBooksIds // Надсилаємо тільки активні
+        id_copybook: remainingBooksIds 
     };
 
     updateLending.mutate({
       id,
       data: payload
     }, {
+        onSuccess: () => navigate({ to: '/lendings' }),
         onError: (error: any) => {
             setFormErrors(error?.response?.data?.message || 'Помилка оновлення');
         }
     });
   };
 
-  if (isLoading) return <div className="p-8 text-center">Завантаження...</div>;
-  if (!lending) return <div className="p-8 text-center text-red-600">Видачу не знайдено</div>;
+  if (isLoading) return (
+    <div className="flex justify-center items-center h-screen bg-gray-50/50">
+      <div className="flex flex-col items-center gap-3">
+           <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+           <div className="text-gray-500 font-medium">Завантаження даних видачі...</div>
+      </div>
+    </div>
+  );
+
+  if (!lending) return (
+    <div className="min-h-screen bg-gray-50 p-10 flex justify-center items-center">
+        <div className="text-center">
+            <h2 className="text-2xl font-bold text-gray-800">Видачу не знайдено</h2>
+            <Link to="/lendings" className="text-blue-600 hover:underline mt-2 block">Повернутися до списку</Link>
+        </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Редагувати видачу #{lending.id}</h1>
-              {isClosed ? (
-                <p className="text-sm text-gray-500 mt-1">Ця видача закрита.</p>
-              ) : isOverdue ? (
-                <p className="text-sm text-red-600 font-bold mt-1">⚠️ УВАГА: Термін повернення сплив!</p>
-              ) : (
-                <p className="text-sm text-gray-500 mt-1">Активна видача</p>
-              )}
-            </div>
-            <div className="flex flex-col items-end gap-2">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${isClosed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                    {isClosed ? 'Закрито' : 'Активно'}
-                </span>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50/50 p-6 md:p-10 flex justify-center">
+      <div className="w-full max-w-4xl">
+        
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+           <Link to="/lendings" className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all">
+             ←
+           </Link>
+           <div className="flex-1 flex justify-between items-start md:items-center flex-col md:flex-row gap-4">
+             <div>
+                <div className="flex items-center gap-3">
+                    <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Видача #{lending.id}</h1>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${
+                        isClosed 
+                        ? 'bg-green-100 text-green-700 border-green-200' 
+                        : isOverdue 
+                            ? 'bg-red-100 text-red-700 border-red-200' 
+                            : 'bg-blue-100 text-blue-700 border-blue-200'
+                    }`}>
+                        {isClosed ? 'Закрито' : isOverdue ? 'Прострочено' : 'Активно'}
+                    </span>
+                </div>
+                <p className="text-slate-500 mt-1">
+                    {isClosed ? 'Всі книги повернуто, процес завершено.' : 'Керування поверненням книг.'}
+                </p>
+             </div>
+           </div>
+        </div>
+
+        {/* Form Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-6 md:p-8">
 
           {formErrors && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-              {formErrors}
+            <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl flex items-center gap-3">
+              <span className="text-xl">⚠️</span>
+              <p className="font-medium">{formErrors}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Читач</label>
-                    <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700">
-                        {lending.reader?.fullName || 'Невідомий'}
+          <form onSubmit={handleSubmit} className="space-y-8">
+            
+            {/* Основна інформація */}
+            <div className="space-y-6">
+                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 pb-2 border-b border-slate-100">
+                    <span>📋</span> Деталі
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Читач</label>
+                        <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-lg border border-slate-200">👤</div>
+                            <span className="font-medium text-slate-800">{lending.reader?.fullName || 'Невідомий'}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Працівник</label>
+                        <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-lg border border-slate-200">👔</div>
+                            <span className="font-medium text-slate-800">{lending.employee?.fullName || 'Невідомий'}</span>
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Працівник</label>
-                    <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700">
-                        {lending.employee?.fullName || 'Невідомий'}
-                    </div>
-                </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-6">
-                <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Дата видачі</label>
-                    <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-700">
-                        {new Date(lending.dateLending).toLocaleDateString('uk-UA')}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Дата видачі</label>
+                        <div className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 font-medium">
+                            {new Date(lending.dateLending).toLocaleDateString('uk-UA')}
+                        </div>
                     </div>
-                </div>
-                
-                <div>
-                    <label className={`block text-sm font-semibold mb-2 ${isOverdue ? 'text-red-600' : 'text-gray-700'}`}>
-                        Планове повернення
-                    </label>
-                    <input
-                        type="date"
-                        value={dateReturnPlanned}
-                        onChange={(e) => setDateReturnPlanned(e.target.value)}
-                        disabled={isClosed}
-                        className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600 outline-none transition ${
-                          isClosed 
-                            ? 'bg-gray-100 text-gray-500 cursor-not-allowed border-gray-300' 
-                            : isOverdue
-                                ? 'border-red-300 bg-red-50 focus:ring-red-500'
-                                : 'border-gray-300'
-                        }`}
-                        required
-                    />
+                    
+                    <div>
+                        <label className={`block text-sm font-bold mb-2 ${isOverdue ? 'text-red-600' : 'text-slate-700'}`}>
+                            Планове повернення
+                        </label>
+                        <input
+                            type="date"
+                            value={dateReturnPlanned}
+                            onChange={(e) => setDateReturnPlanned(e.target.value)}
+                            disabled={isClosed}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium ${
+                            isClosed 
+                                ? 'bg-slate-50 text-slate-400 cursor-not-allowed border-slate-200' 
+                                : isOverdue
+                                    ? 'border-red-300 bg-red-50 text-red-700 focus:border-red-500'
+                                    : 'border-slate-200 focus:border-blue-500'
+                            }`}
+                            required
+                        />
+                    </div>
                 </div>
             </div>
 
             {/* Блок книг */}
-            <div className={`border rounded-lg p-4 ${isOverdue ? 'bg-red-50 border-red-100' : 'bg-gray-50 border-gray-200'}`}>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">
-                Книги у видачі
-              </label>
+            <div className="space-y-4">
+              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 pb-2 border-b border-slate-100">
+                 <span>📚</span> Книги у видачі
+              </h2>
               
               <div className="space-y-3">
                 {lending.copybooks?.length === 0 && (
-                  <p className="text-sm text-gray-500 text-center py-4">Всі книги повернуто</p>
+                  <div className="text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-200 text-slate-500">
+                      Всі книги з цього запису були повернуті раніше.
+                  </div>
                 )}
                 
                 {lending.copybooks?.map((copybook) => {
@@ -211,48 +248,50 @@ export const EditLendingPage = () => {
                   return (
                     <div 
                       key={copybook.id}
-                      className={`flex items-center justify-between p-3 rounded border transition-all ${
+                      className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border transition-all gap-4 ${
                         isReturnedInDb 
-                           ? 'bg-green-50 border-green-200 opacity-90'
+                           ? 'bg-green-50/50 border-green-200'
                            : isMarkedForReturn 
-                              ? 'bg-yellow-50 border-yellow-200'
-                              : 'bg-white border-gray-300'
+                              ? 'bg-blue-50 border-blue-200 shadow-sm'
+                              : 'bg-white border-slate-200'
                       }`}
                     >
-                      <div className="flex flex-col">
-                        <div className="flex items-center gap-2">
-                            <span className={`font-medium text-sm ${isMarkedForReturn ? 'text-gray-500' : 'text-gray-800'}`}>
-                            #{copybook.id} - {copybook.edition?.book?.title || 'Невідомо'}
-                            </span>
-                            
-                            {isReturnedInDb && (
-                                <span className="text-xs px-2 py-0.5 bg-green-200 text-green-800 rounded-full font-medium">
-                                    Повернуто: {new Date(copybook.dateReturnActual!).toLocaleDateString('uk-UA')}
-                                </span>
-                            )}
+                      <div className="flex items-start gap-4">
+                        <div className={`w-10 h-10 flex items-center justify-center rounded-lg text-xl ${isReturnedInDb ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500'}`}>
+                            {isReturnedInDb ? '✅' : '📖'}
                         </div>
-                        
-                        {isMarkedForReturn && (
-                           <span className="text-xs text-yellow-700 font-semibold mt-1">
-                               Буде повернуто після збереження
-                           </span>
-                        )}
+                        <div>
+                            <h3 className={`font-bold text-sm ${isMarkedForReturn || isReturnedInDb ? 'text-slate-600' : 'text-slate-800'}`}>
+                                {copybook.edition?.book?.title || 'Невідомо'}
+                            </h3>
+                            <div className="flex flex-wrap gap-2 mt-1 text-xs">
+                                <span className="font-mono bg-slate-100 px-1.5 py-0.5 rounded text-slate-500">ID: #{copybook.id}</span>
+                                {isReturnedInDb && (
+                                    <span className="text-green-700 font-semibold">
+                                        Повернуто: {new Date(copybook.dateReturnActual!).toLocaleDateString('uk-UA')}
+                                    </span>
+                                )}
+                                {isMarkedForReturn && (
+                                    <span className="text-blue-600 font-semibold">
+                                        Буде повернуто зараз
+                                    </span>
+                                )}
+                            </div>
+                        </div>
                       </div>
 
                       {!isReturnedInDb && !isClosed ? (
                           <button
                             type="button"
                             onClick={() => toggleBookReturn(copybook.id)}
-                            className={`px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+                            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all active:scale-95 ${
                                 isMarkedForReturn
-                                ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                ? 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-50'
+                                : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-200'
                             }`}
                           >
                             {isMarkedForReturn ? 'Скасувати' : 'Повернути'}
                           </button>
-                      ) : isReturnedInDb ? (
-                          <span className="text-green-600 text-xl">✓</span>
                       ) : null}
                     </div>
                   );
@@ -261,61 +300,64 @@ export const EditLendingPage = () => {
             </div>
 
             {/* Дата закриття */}
-            <div className={`p-4 border rounded-lg ${isClosed ? 'bg-gray-100 border-gray-300' : 'bg-blue-50 border-blue-200'}`}>
-              <label className={`block text-sm font-semibold mb-2 ${isClosed ? 'text-gray-500' : 'text-blue-900'}`}>
-                Дата закриття видачі (всіх книг)
-              </label>
-              <div className="flex gap-2">
-                  <input
-                    type="date"
-                    value={dateReturn}
-                    onChange={(e) => setDateReturn(e.target.value)}
-                    disabled={isClosed}
-                    className={`flex-1 px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-blue-600 ${
-                      isClosed 
-                        ? 'bg-gray-200 text-gray-600 cursor-not-allowed border-gray-300' 
-                        : 'border-blue-300 bg-white'
-                    }`}
-                  />
-                  {dateReturn && !isClosed && (
-                      <button 
-                        type="button"
-                        onClick={() => setDateReturn('')}
-                        className="px-3 py-2 bg-red-100 text-red-600 rounded hover:bg-red-200 transition"
-                      >
-                          ✕
-                      </button>
-                  )}
+            <div className={`p-5 rounded-2xl border transition-all ${isClosed ? 'bg-slate-50 border-slate-200 opacity-70' : 'bg-blue-50/50 border-blue-100'}`}>
+              <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+                  <div>
+                    <label className={`block text-sm font-bold mb-1 ${isClosed ? 'text-slate-500' : 'text-blue-900'}`}>
+                        Дата повного закриття
+                    </label>
+                    <p className="text-xs text-slate-500 max-w-sm">
+                        {isClosed 
+                            ? "Дата, коли видача була повністю закрита." 
+                            : "Якщо ви хочете закрити видачу вручну, вкажіть дату. При поверненні останньої книги це поле заповниться автоматично."
+                        }
+                    </p>
+                  </div>
+                  
+                  <div className="flex gap-2 w-full md:w-auto">
+                      <input
+                        type="date"
+                        value={dateReturn}
+                        onChange={(e) => setDateReturn(e.target.value)}
+                        disabled={isClosed}
+                        className={`flex-1 md:w-48 px-4 py-2 border rounded-xl outline-none focus:ring-2 focus:ring-blue-600 transition-all ${
+                        isClosed 
+                            ? 'bg-slate-200 border-slate-300 text-slate-500 cursor-not-allowed' 
+                            : 'border-blue-300 bg-white text-blue-900'
+                        }`}
+                      />
+                      {dateReturn && !isClosed && (
+                          <button 
+                            type="button"
+                            onClick={() => setDateReturn('')}
+                            className="px-3 py-2 bg-white border border-red-200 text-red-500 rounded-xl hover:bg-red-50 transition"
+                            title="Очистити дату"
+                          >
+                              ✕
+                          </button>
+                      )}
+                  </div>
               </div>
-              {!isClosed && !dateReturn && (
-                  <p className="text-xs text-blue-700 mt-2">
-                      Якщо ви хочете закрити видачу повністю вручну, вкажіть дату тут. Якщо ви просто повертаєте окремі книги вище, дата закриття встановиться автоматично, коли буде повернута остання книга.
-                  </p>
-              )}
             </div>
 
-            <div className="flex gap-3 pt-4">
-              {!isClosed ? (
+            <div className="flex gap-4 pt-4 border-t border-slate-100">
                 <button
-                  type="submit"
-                  disabled={updateLending.isPending}
-                  className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-70"
+                    type="button"
+                    onClick={() => navigate({ to: '/lendings' })}
+                    className="flex-1 px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 hover:text-slate-800 transition-all"
                 >
-                  {updateLending.isPending ? 'Збереження...' : 'Зберегти зміни'}
+                    Назад
                 </button>
-              ) : (
-                 <div className="flex-1 bg-gray-100 text-gray-500 px-6 py-3 rounded-lg border border-gray-300 text-center font-medium cursor-not-allowed">
-                    Редагування заборонено
-                 </div>
-              )}
-              
-              <button
-                type="button"
-                onClick={() => navigate({ to: '/lendings' })}
-                className="flex-1 bg-gray-300 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-400 transition-colors font-medium"
-              >
-                Назад до списку
-              </button>
+                
+                {!isClosed && (
+                    <button
+                    type="submit"
+                    disabled={updateLending.isPending}
+                    className="flex-1 px-6 py-3.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 active:scale-95 shadow-lg shadow-blue-200 transition-all disabled:opacity-70 disabled:pointer-events-none"
+                    >
+                    {updateLending.isPending ? 'Збереження...' : 'Зберегти зміни'}
+                    </button>
+                )}
             </div>
           </form>
         </div>

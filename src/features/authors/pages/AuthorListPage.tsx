@@ -2,8 +2,13 @@ import { useState, useMemo } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useAuthors, useDeleteAuthor } from '../api';
 import { IAuthor } from '../types';
+import { useAuthStore } from '@/store/authStore'; // Імпорт стору
 
 export const AuthorsListPage = () => {
+  // 1. Отримуємо роль
+  const role = useAuthStore((state) => state.role);
+  const isReader = role === 'READER' || !role;
+
   const { data: authors, isLoading, error } = useAuthors();
   const deleteAuthor = useDeleteAuthor();
 
@@ -26,14 +31,13 @@ export const AuthorsListPage = () => {
 
     let result = [...authors];
 
-    // 1. Фільтрація (Пошук по всіх текстових полях)
+    // 1. Фільтрація
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
       result = result.filter((author) => 
         author.firstname.toLowerCase().includes(lowerQuery) ||
         author.lastname.toLowerCase().includes(lowerQuery) ||
         (author.patronymic && author.patronymic.toLowerCase().includes(lowerQuery)) ||
-        // Про всяк випадок залишаємо пошук по повному імені, якщо воно приходить з бекенду
         (author.fullName && author.fullName.toLowerCase().includes(lowerQuery))
       );
     }
@@ -44,7 +48,6 @@ export const AuthorsListPage = () => {
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
 
-        // Якщо значення рівні, порядок не міняємо
         if (aValue === bValue) return 0;
         
         // Обробка null/undefined (завжди в кінець)
@@ -59,11 +62,11 @@ export const AuthorsListPage = () => {
             const dateB = new Date(bValue as string | Date).getTime();
             comparison = dateA - dateB;
         } 
-        // Логіка для рядків (з врахуванням локалізації)
+        // Логіка для рядків
         else if (typeof aValue === 'string' && typeof bValue === 'string') {
             comparison = aValue.localeCompare(bValue, 'uk');
         } 
-        // Логіка для чисел (id)
+        // Логіка для чисел
         else {
             comparison = (aValue < bValue) ? -1 : 1;
         }
@@ -77,123 +80,153 @@ export const AuthorsListPage = () => {
 
   if (isLoading) 
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-lg text-gray-600">Завантаження авторів...</div>
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-gray-500 font-medium">Завантаження списку авторів...</div>
+        </div>
       </div>
     );
 
   if (error) 
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-lg text-red-600">Помилка завантаження данних!</div>
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="bg-white p-6 rounded-xl shadow-lg border border-red-100 text-center">
+          <div className="text-4xl mb-2">⚠️</div>
+          <h3 className="text-lg font-bold text-gray-800">Виникла помилка</h3>
+          <p className="text-red-500">Не вдалося завантажити авторів.</p>
+        </div>
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+    <div className="min-h-screen bg-gray-50/50 p-6 md:p-10">
+      <div className="max-w-7xl mx-auto space-y-6">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900">Автори</h1>
-            <p className="text-gray-600 mt-2">
-              Знайдено авторів: {processedAuthors.length} (Всього: {authors?.length || 0})
+            <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Автори</h1>
+            <p className="text-slate-500 mt-1">
+              Знайдено {processedAuthors.length} із {authors?.length || 0} записів
             </p>
           </div>
-          <Link 
-            to="/authors/new" 
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
-            + Додати автора
-          </Link>
+          
+          {/* Кнопка додавання - ПРИХОВАНА ДЛЯ ЧИТАЧА */}
+          {!isReader && (
+            <Link 
+              to="/authors/new" 
+              className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-200 font-medium"
+            >
+              <span>+</span> Додати автора
+            </Link>
+          )}
         </div>
 
         {/* Search Bar */}
-        <div className="mb-6">
+        <div className="relative group">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+            🔍
+          </div>
           <input
             type="text"
             placeholder="Пошук за ім'ям, прізвищем..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm transition-all"
+            className="w-full pl-11 pr-4 py-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-700 placeholder:text-slate-400"
           />
         </div>
 
-        {/* Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        {/* Table Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           {processedAuthors.length > 0 ? (
-            <table className="w-full">
-              <thead className="bg-gray-100 border-b">
-                <tr>
-                  <th 
-                    onClick={() => handleSort('firstname')}
-                    className="px-6 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors select-none"
-                  >
-                    Ім'я {sortConfig?.key === 'firstname' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th 
-                    onClick={() => handleSort('lastname')}
-                    className="px-6 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors select-none"
-                  >
-                    Прізвище {sortConfig?.key === 'lastname' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th 
-                    onClick={() => handleSort('patronymic')}
-                    className="px-6 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors select-none"
-                  >
-                    По батькові {sortConfig?.key === 'patronymic' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th 
-                    onClick={() => handleSort('dateofbirth')}
-                    className="px-6 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors select-none"
-                  >
-                    Дата народження {sortConfig?.key === 'dateofbirth' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th className="px-6 py-3 text-right text-sm font-semibold text-gray-700">Дії</th>
-                </tr>
-              </thead>
-              <tbody>
-                {processedAuthors.map((author, index) => (
-                  <tr 
-                    key={author.id} 
-                    className={`border-b hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                  >
-                    <td className="px-6 py-4 text-sm text-gray-900">{author.firstname}</td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{author.lastname}</td>
-                    <td className="px-6 py-4 text-sm text-gray-900">{author.patronymic || '-'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {author.dateofbirth 
-                        ? new Date(author.dateofbirth).toLocaleDateString('uk-UA')
-                        : '-'
-                      }
-                    </td>
-                    <td className="px-6 py-4 text-right space-x-2">
-                      <Link 
-                        to="/authors/$authorId" 
-                        params={{ authorId: author.id.toString() }} 
-                        className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium transition-colors"
-                      >
-                        Редагувати
-                      </Link>
-                      <button 
-                        onClick={() => {
-                          if (window.confirm(`Ви впевнені, що хочете видалити автора ${author.lastname} ${author.firstname}?`)) {
-                            deleteAuthor.mutate(author.id);
-                          }
-                        }}
-                        className="text-red-600 hover:text-red-800 hover:underline text-sm font-medium transition-colors"
-                      >
-                        Видалити
-                      </button>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full whitespace-nowrap">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th 
+                      onClick={() => handleSort('firstname')}
+                      className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none"
+                    >
+                      Ім'я {sortConfig?.key === 'firstname' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th 
+                      onClick={() => handleSort('lastname')}
+                      className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none"
+                    >
+                      Прізвище {sortConfig?.key === 'lastname' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th 
+                      onClick={() => handleSort('patronymic')}
+                      className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none"
+                    >
+                      По батькові {sortConfig?.key === 'patronymic' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th 
+                      onClick={() => handleSort('dateofbirth')}
+                      className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none"
+                    >
+                      Дата народження {sortConfig?.key === 'dateofbirth' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </th>
+                    
+                    {/* Заголовок Дій - ПРИХОВАНИЙ ДЛЯ ЧИТАЧА */}
+                    {!isReader && (
+                      <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        Дії
+                      </th>
+                    )}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {processedAuthors.map((author) => (
+                    <tr 
+                      key={author.id} 
+                      className="hover:bg-blue-50/50 transition-colors group"
+                    >
+                      <td className="px-6 py-4 text-slate-800 font-medium">{author.firstname}</td>
+                      <td className="px-6 py-4 text-slate-800 font-semibold">{author.lastname}</td>
+                      <td className="px-6 py-4 text-slate-600">{author.patronymic || '-'}</td>
+                      <td className="px-6 py-4 text-slate-600">
+                        {author.dateofbirth 
+                          ? new Date(author.dateofbirth).toLocaleDateString('uk-UA')
+                          : <span className="text-slate-400">-</span>
+                        }
+                      </td>
+                      
+                      {/* Кнопки Дій - ПРИХОВАНІ ДЛЯ ЧИТАЧА */}
+                      {!isReader && (
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-3 opacity-80 group-hover:opacity-100 transition-opacity">
+                            <Link 
+                              to="/authors/$authorId" 
+                              params={{ authorId: author.id.toString() }} 
+                              className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
+                            >
+                              Редагувати
+                            </Link>
+                            <button 
+                              onClick={() => {
+                                if (window.confirm(`Ви впевнені, що хочете видалити автора ${author.lastname} ${author.firstname}?`)) {
+                                  deleteAuthor.mutate(author.id);
+                                }
+                              }}
+                              className="text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors"
+                            >
+                              Видалити
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
-            <div className="p-8 text-center text-gray-600">
-              <p className="text-lg">
-                {searchQuery ? 'За вашим запитом нічого не знайдено' : 'Авторів не знайдено'}
+             <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+              <span className="text-4xl mb-3">👤</span>
+              <p className="text-lg font-medium">
+                {searchQuery ? 'За вашим запитом нічого не знайдено' : 'Список авторів порожній'}
               </p>
             </div>
           )}

@@ -21,16 +21,4 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Опціонально: перехоплювач для 401 помилки (якщо токен протух - розлогінити)
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      useAuthStore.getState().logout();
-      // Можна додати редірект на логін, якщо потрібно
-    }
-    return Promise.reject(error);
-  }
-);
-
 export default apiClient;

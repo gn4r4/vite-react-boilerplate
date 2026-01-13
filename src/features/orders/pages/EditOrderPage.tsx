@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { useParams, useNavigate } from '@tanstack/react-router';
+import { useParams, useNavigate, Link } from '@tanstack/react-router';
 import { useOrder, useUpdateOrder } from '../api';
 import { useEditions } from '../../editions/api';
 import { useSuppliers } from '../../suppliers/api';
@@ -23,10 +23,12 @@ export const EditOrderPage = () => {
 
   const [supplierId, setSupplierId] = useState<string>('');
   
-  // Пошук видання
+  // States for adding items
   const [editionSearch, setEditionSearch] = useState('');
+  const [tempEditionId, setTempEditionId] = useState<string>('');
+  const [tempQty, setTempQty] = useState<number>(1);
 
-  // Фільтрація списку видань
+  // Filter editions
   const filteredEditions = useMemo(() => {
     if (!editions) return [];
     if (!editionSearch) return editions;
@@ -70,15 +72,20 @@ export const EditOrderPage = () => {
         }))
       };
 
-      updateOrder.mutate({ id, data: payload });
+      updateOrder.mutate({ id, data: payload }, {
+          onSuccess: () => navigate({ to: '/orders' })
+      });
     } else {
         alert("Додайте хоча б одне видання");
     }
   };
 
-  const handleAddItem = (editionId: number, quantity: number) => {
+  const handleAddItem = () => {
+    const editionId = Number(tempEditionId);
+    const quantity = tempQty;
     const edition = editions?.find(e => e.id === editionId);
-    if (!edition) return;
+    
+    if (!edition || quantity <= 0) return;
 
     setFormData(prev => {
       const currentItems = prev.editions || [];
@@ -98,6 +105,10 @@ export const EditOrderPage = () => {
         };
       }
     });
+
+    setTempEditionId('');
+    setTempQty(1);
+    setEditionSearch('');
   };
 
   const handleRemoveItem = (index: number) => {
@@ -111,157 +122,203 @@ export const EditOrderPage = () => {
 
   if (isLoading)
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-lg text-gray-600">Завантаження...</div>
+      <div className="flex justify-center items-center h-screen bg-gray-50/50">
+        <div className="flex flex-col items-center gap-3">
+             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+             <div className="text-gray-500 font-medium">Завантаження замовлення...</div>
+        </div>
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Редагувати замовлення</h1>
-          <p className="text-gray-600 mb-6">Оновіть інформацію про замовлення #{id}</p>
+    <div className="min-h-screen bg-gray-50/50 p-6 md:p-10 flex justify-center">
+      <div className="w-full max-w-4xl">
+        
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+           <Link to="/orders" className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all">
+             ←
+           </Link>
+           <div className="flex-1 flex justify-between items-center">
+             <div>
+                <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Редагування</h1>
+                <p className="text-slate-500">Управління замовленням</p>
+             </div>
+             <div className="hidden sm:block px-3 py-1 bg-slate-200 text-slate-600 rounded-lg font-mono text-sm font-bold">
+                ID: #{orderId}
+             </div>
+           </div>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Дата замовлення</label>
-                  <input
-                    type="date"
-                    value={formData.date instanceof Date ? formData.date.toISOString().split('T')[0] : ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, date: new Date(e.target.value) }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
-                  />
-                </div>
+        {/* Form Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-6 md:p-8">
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Статус</label>
-                  <select
-                    value={formData.status || 'pending'}
-                    onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
-                  >
-                    <option value="pending">Очікування</option>
-                    <option value="processing">В обробці</option>
-                    <option value="completed">Завершено</option>
-                    <option value="cancelled">Скасовано</option>
-                  </select>
-                </div>
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-6">
+                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 pb-2 border-b border-slate-100">
+                    <span>📄</span> Інформація про замовлення
+                </h2>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Постачальник</label>
-              <select
-                value={supplierId}
-                onChange={(e) => setSupplierId(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
-              >
-                <option value="">Оберіть постачальника</option>
-                {suppliers?.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-              <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Видання в замовленні</h3>
-                  <span className="text-sm text-gray-600">
-                      Всього книг: <span className="font-bold">{totalQuantity}</span>
-                  </span>
-              </div>
-
-              {formData.editions && formData.editions.length > 0 ? (
-                <div className="space-y-2 mb-4 max-h-48 overflow-y-auto">
-                  {formData.editions.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center p-2 bg-white rounded border border-gray-200 shadow-sm">
-                      <div>
-                        <p className="font-medium text-gray-900">{item.edition?.book?.title}</p>
-                        <p className="text-sm text-gray-600">Кількість: {item.quantity}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveItem(index)}
-                        className="text-red-600 hover:text-red-800 font-medium text-sm"
-                      >
-                        Видалити
-                      </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Дата замовлення</label>
+                        <input
+                            type="date"
+                            value={formData.date instanceof Date ? formData.date.toISOString().split('T')[0] : ''}
+                            onChange={(e) => setFormData(prev => ({ ...prev, date: new Date(e.target.value) }))}
+                            className="w-full px-4 py-3 bg-white rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium text-slate-600"
+                        />
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center py-4 mb-4 bg-white rounded border border-dashed border-gray-300">Немає видань в замовленні</p>
-              )}
 
-              <div className="space-y-2">
-                 <input 
-                    type="text" 
-                    placeholder="Пошук книги за назвою..." 
-                    value={editionSearch}
-                    onChange={(e) => setEditionSearch(e.target.value)}
-                    className="w-full px-3 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500 mb-1"
-                 />
-
-                <div className="grid grid-cols-[1fr_100px] gap-2">
-                    <select
-                    id="editionSelect"
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
-                    defaultValue=""
-                    >
-                    <option value="">
-                         {filteredEditions.length === 0 ? 'Нічого не знайдено' : 'Оберіть видання...'}
-                    </option>
-                    {filteredEditions.map(e => (
-                        <option key={e.id} value={e.id}>{e.book?.title}</option>
-                    ))}
-                    </select>
-                    <input
-                    type="number"
-                    id="quantityInput"
-                    min="1"
-                    defaultValue="1"
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
-                    placeholder="Кількість"
-                    />
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-2">Статус</label>
+                        <div className="relative">
+                            <select
+                                value={formData.status || 'pending'}
+                                onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
+                                className={`w-full px-4 py-3 rounded-xl border focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none cursor-pointer font-medium ${
+                                    formData.status === 'completed' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' :
+                                    formData.status === 'cancelled' ? 'bg-red-50 border-red-200 text-red-700' :
+                                    formData.status === 'processing' ? 'bg-blue-50 border-blue-200 text-blue-700' :
+                                    'bg-white border-slate-200 text-slate-700'
+                                }`}
+                            >
+                                <option value="pending">⏳ Очікування</option>
+                                <option value="processing">🔄 В обробці</option>
+                                <option value="completed">✅ Завершено</option>
+                                <option value="cancelled">❌ Скасовано</option>
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none opacity-50">▼</div>
+                        </div>
+                    </div>
                 </div>
-              </div>
-              
-              <button
-                type="button"
-                onClick={() => {
-                  const select = document.getElementById('editionSelect') as HTMLSelectElement;
-                  const input = document.getElementById('quantityInput') as HTMLInputElement;
-                  const editionId = Number(select.value);
-                  const quantity = Number(input.value);
-                  
-                  if (editionId && quantity > 0) {
-                    handleAddItem(editionId, quantity);
-                    select.value = '';
-                    input.value = '1';
-                    setEditionSearch('');
-                  }
-                }}
-                className="w-full mt-3 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium shadow-sm"
-              >
-                + Додати видання
-              </button>
+
+                <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-2">Постачальник</label>
+                    <div className="relative">
+                        <select
+                            value={supplierId}
+                            onChange={(e) => setSupplierId(e.target.value)}
+                            className="w-full px-4 py-3 bg-white rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none cursor-pointer"
+                        >
+                            <option value="">Оберіть постачальника...</option>
+                            {suppliers?.map(s => (
+                            <option key={s.id} value={s.id}>{s.name}</option>
+                            ))}
+                        </select>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">▼</div>
+                    </div>
+                </div>
             </div>
 
-            <div className="flex gap-3 pt-4">
-              <button
-                type="submit"
-                className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium shadow"
-                disabled={updateOrder.isPending}
-              >
-                {updateOrder.isPending ? 'Збереження...' : 'Оновити замовлення'}
-              </button>
+            <div className="space-y-6">
+                <div className="flex justify-between items-end pb-2 border-b border-slate-100">
+                    <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <span>📦</span> Вміст
+                    </h2>
+                    <span className="text-sm font-medium bg-blue-50 text-blue-700 px-3 py-1 rounded-lg border border-blue-100">
+                        Всього книг: <strong>{totalQuantity}</strong>
+                    </span>
+                </div>
+
+                <div className="space-y-2">
+                    {formData.editions && formData.editions.length > 0 ? (
+                        formData.editions.map((item, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl group hover:border-blue-300 transition-colors">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center border border-slate-200 text-sm">
+                                        📖
+                                    </div>
+                                    <span className="font-semibold text-slate-700">{item.edition?.book?.title}</span>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Кількість</span>
+                                    <span className="font-mono font-bold bg-white px-3 py-1 rounded border border-slate-200 text-slate-800">
+                                        {item.quantity}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveItem(index)}
+                                        className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                                        title="Видалити"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="text-center py-8 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                            <span className="text-4xl block mb-2 opacity-50">🛒</span>
+                            <p className="text-slate-500">Список замовлення порожній</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Add Item Form */}
+                <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-4">
+                    <label className="block text-sm font-bold text-blue-900">Додати видання</label>
+                    
+                    <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400">🔍</span>
+                        <input 
+                            type="text" 
+                            placeholder="Фільтр: назва книги або ISBN..." 
+                            value={editionSearch}
+                            onChange={(e) => setEditionSearch(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 text-sm bg-white border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        />
+                    </div>
+
+                    <div className="flex gap-2">
+                        <div className="relative flex-1">
+                            <select
+                                value={tempEditionId}
+                                onChange={(e) => setTempEditionId(e.target.value)}
+                                className="w-full px-4 py-3 bg-white rounded-lg border border-blue-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none cursor-pointer"
+                            >
+                                <option value="">{filteredEditions.length === 0 ? 'Нічого не знайдено' : 'Оберіть видання зі списку...'}</option>
+                                {filteredEditions.map(e => (
+                                    <option key={e.id} value={e.id}>{e.book?.title} ({e.yearPublication ? new Date(e.yearPublication).getFullYear() : '-'})</option>
+                                ))}
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">▼</div>
+                        </div>
+                        <input
+                            type="number"
+                            min="1"
+                            value={tempQty}
+                            onChange={(e) => setTempQty(Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-24 px-3 py-3 bg-white rounded-lg border border-blue-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none text-center font-bold text-slate-700"
+                            placeholder="К-сть"
+                        />
+                        <button
+                            type="button"
+                            onClick={handleAddItem}
+                            disabled={!tempEditionId}
+                            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 active:scale-95 disabled:opacity-50 disabled:pointer-events-none transition-all shadow-sm"
+                        >
+                            + Додати
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-4 pt-4 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => navigate({ to: '/orders' })}
-                className="flex-1 bg-gray-300 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-400 transition-colors font-medium"
+                className="flex-1 px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 hover:text-slate-800 transition-all"
               >
                 Скасувати
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-6 py-3.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 active:scale-95 shadow-lg shadow-blue-200 transition-all disabled:opacity-70 disabled:pointer-events-none"
+                disabled={updateOrder.isPending}
+              >
+                {updateOrder.isPending ? 'Збереження...' : 'Зберегти зміни'}
               </button>
             </div>
           </form>

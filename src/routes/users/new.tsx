@@ -1,9 +1,13 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
+import { CreateUserPage } from '@/features/users/pages/CreateUserPage';
+import { useAuthStore } from '@/store/authStore';
 
 export const Route = createFileRoute('/users/new')({
-  component: RouteComponent,
+  component: CreateUserPage,
+  beforeLoad: () => {
+    const role = useAuthStore.getState().role;
+    if (role != 'ADMINISTRATOR') {
+      throw redirect({ to: '/' });
+    }
+  },
 })
-
-function RouteComponent() {
-  return <div>Hello "/users/users/new"!</div>
-}

@@ -43,7 +43,6 @@ import { Route as PositionsPositionIdRouteImport } from './routes/positions/$pos
 import { Route as OrdersNewRouteImport } from './routes/orders/new'
 import { Route as OrdersOrderIdRouteImport } from './routes/orders/$orderId'
 import { Route as LocationsNewRouteImport } from './routes/locations/new'
-import { Route as LocationsLendingIdRouteImport } from './routes/locations/$lendingId'
 import { Route as LendingsNewRouteImport } from './routes/lendings/new'
 import { Route as LendingsLendingIdRouteImport } from './routes/lendings/$lendingId'
 import { Route as GenresNewRouteImport } from './routes/genres/new'
@@ -233,11 +232,6 @@ const LocationsNewRoute = LocationsNewRouteImport.update({
   path: '/locations/new',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LocationsLendingIdRoute = LocationsLendingIdRouteImport.update({
-  id: '/locations/$lendingId',
-  path: '/locations/$lendingId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LendingsNewRoute = LendingsNewRouteImport.update({
   id: '/lendings/new',
   path: '/lendings/new',
@@ -350,7 +344,6 @@ export interface FileRoutesByFullPath {
   '/genres/new': typeof GenresNewRoute
   '/lendings/$lendingId': typeof LendingsLendingIdRoute
   '/lendings/new': typeof LendingsNewRoute
-  '/locations/$lendingId': typeof LocationsLendingIdRoute
   '/locations/new': typeof LocationsNewRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/orders/new': typeof OrdersNewRoute
@@ -405,7 +398,6 @@ export interface FileRoutesByTo {
   '/genres/new': typeof GenresNewRoute
   '/lendings/$lendingId': typeof LendingsLendingIdRoute
   '/lendings/new': typeof LendingsNewRoute
-  '/locations/$lendingId': typeof LocationsLendingIdRoute
   '/locations/new': typeof LocationsNewRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/orders/new': typeof OrdersNewRoute
@@ -461,7 +453,6 @@ export interface FileRoutesById {
   '/genres/new': typeof GenresNewRoute
   '/lendings/$lendingId': typeof LendingsLendingIdRoute
   '/lendings/new': typeof LendingsNewRoute
-  '/locations/$lendingId': typeof LocationsLendingIdRoute
   '/locations/new': typeof LocationsNewRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/orders/new': typeof OrdersNewRoute
@@ -518,7 +509,6 @@ export interface FileRouteTypes {
     | '/genres/new'
     | '/lendings/$lendingId'
     | '/lendings/new'
-    | '/locations/$lendingId'
     | '/locations/new'
     | '/orders/$orderId'
     | '/orders/new'
@@ -573,7 +563,6 @@ export interface FileRouteTypes {
     | '/genres/new'
     | '/lendings/$lendingId'
     | '/lendings/new'
-    | '/locations/$lendingId'
     | '/locations/new'
     | '/orders/$orderId'
     | '/orders/new'
@@ -628,7 +617,6 @@ export interface FileRouteTypes {
     | '/genres/new'
     | '/lendings/$lendingId'
     | '/lendings/new'
-    | '/locations/$lendingId'
     | '/locations/new'
     | '/orders/$orderId'
     | '/orders/new'
@@ -684,7 +672,6 @@ export interface RootRouteChildren {
   GenresNewRoute: typeof GenresNewRoute
   LendingsLendingIdRoute: typeof LendingsLendingIdRoute
   LendingsNewRoute: typeof LendingsNewRoute
-  LocationsLendingIdRoute: typeof LocationsLendingIdRoute
   LocationsNewRoute: typeof LocationsNewRoute
   OrdersOrderIdRoute: typeof OrdersOrderIdRoute
   OrdersNewRoute: typeof OrdersNewRoute
@@ -959,13 +946,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LocationsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/locations/$lendingId': {
-      id: '/locations/$lendingId'
-      path: '/locations/$lendingId'
-      fullPath: '/locations/$lendingId'
-      preLoaderRoute: typeof LocationsLendingIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/lendings/new': {
       id: '/lendings/new'
       path: '/lendings/new'
@@ -1116,7 +1096,6 @@ const rootRouteChildren: RootRouteChildren = {
   GenresNewRoute: GenresNewRoute,
   LendingsLendingIdRoute: LendingsLendingIdRoute,
   LendingsNewRoute: LendingsNewRoute,
-  LocationsLendingIdRoute: LocationsLendingIdRoute,
   LocationsNewRoute: LocationsNewRoute,
   OrdersOrderIdRoute: OrdersOrderIdRoute,
   OrdersNewRoute: OrdersNewRoute,

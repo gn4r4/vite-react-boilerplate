@@ -4,7 +4,7 @@ import apiClient from '@/lib/axios';
 import { IGenre } from './types';
 
 // --- API Functions ---
-const getGenres = async (): Promise<IGenre[]> => {
+export const getGenres = async (): Promise<IGenre[]> => {
   const response = await apiClient.get('/genres');
   return response.data.data;
 };

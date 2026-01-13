@@ -2,8 +2,13 @@ import { useState, useMemo } from 'react';
 import { Link } from '@tanstack/react-router';
 import { usePublishers, useDeletePublisher } from '../api';
 import { IPublisher } from '../types';
+import { useAuthStore } from '@/store/authStore'; // Імпорт стору
 
 export const PublishersListPage = () => {
+  // 1. Отримуємо роль
+  const role = useAuthStore((state) => state.role);
+  const isReader = role === 'READER' || !role;
+
   const { data: publishers, isLoading, error } = usePublishers();
   const deletePublisher = useDeletePublisher();
 
@@ -63,111 +68,147 @@ export const PublishersListPage = () => {
 
   if (isLoading) 
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-lg text-gray-600">Завантаження видавців...</div>
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-gray-500 font-medium">Завантаження видавців...</div>
+        </div>
       </div>
     );
 
   if (error) 
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-lg text-red-600">Помилка завантаження данних!</div>
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="bg-white p-6 rounded-xl shadow-lg border border-red-100 text-center">
+          <div className="text-4xl mb-2">⚠️</div>
+          <h3 className="text-lg font-bold text-gray-800">Виникла помилка</h3>
+          <p className="text-red-500">Не вдалося завантажити видавців.</p>
+        </div>
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+    <div className="min-h-screen bg-gray-50/50 p-6 md:p-10">
+      <div className="max-w-7xl mx-auto space-y-6">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900">Видавці</h1>
-            <p className="text-gray-600 mt-2">
-              Знайдено видавців: {processedPublishers.length} (Всього: {publishers?.length || 0})
+            <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Видавництва</h1>
+            <p className="text-slate-500 mt-1">
+              Знайдено {processedPublishers.length} із {publishers?.length || 0} записів
             </p>
           </div>
-          <Link 
-            to="/publishers/new" 
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
-            + Додати видавця
-          </Link>
+          
+          {/* Кнопка додавання - ПРИХОВАНА ДЛЯ ЧИТАЧА */}
+          {!isReader && (
+            <Link 
+              to="/publishers/new" 
+              className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-200 font-medium"
+            >
+              <span>+</span> Додати видавця
+            </Link>
+          )}
         </div>
 
         {/* Search Bar */}
-        <div className="mb-6">
+        <div className="relative group">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
+            🔍
+          </div>
           <input
             type="text"
             placeholder="Пошук за назвою, адресою або контактами..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-sm transition-all"
+            className="w-full pl-11 pr-4 py-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-700 placeholder:text-slate-400"
           />
         </div>
 
-        {/* Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        {/* Table Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           {processedPublishers.length > 0 ? (
-            <table className="w-full">
-              <thead className="bg-gray-100 border-b">
-                <tr>
-                  <th 
-                    onClick={() => handleSort('name')}
-                    className="px-6 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors select-none"
-                  >
-                    Назва {sortConfig?.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th 
-                    onClick={() => handleSort('address')}
-                    className="px-6 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors select-none"
-                  >
-                    Адреса {sortConfig?.key === 'address' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th 
-                    onClick={() => handleSort('contact')}
-                    className="px-6 py-3 text-left text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-200 transition-colors select-none"
-                  >
-                    Контакт {sortConfig?.key === 'contact' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                  </th>
-                  <th className="px-6 py-3 text-right text-sm font-semibold text-gray-700">Дії</th>
-                </tr>
-              </thead>
-              <tbody>
-                {processedPublishers.map((publisher, index) => (
-                  <tr 
-                    key={publisher.id} 
-                    className={`border-b hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
-                  >
-                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{publisher.name}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{publisher.address || '-'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{publisher.contact || '-'}</td>
-                    <td className="px-6 py-4 text-right space-x-2">
-                      <Link 
-                        to="/publishers/$publisherId"
-                        params={{ publisherId: publisher.id.toString() }}
-                        className="text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium transition-colors"
-                      >
-                        Редагувати
-                      </Link>
-                      <button 
-                        onClick={() => {
-                          if (window.confirm(`Ви впевнені, що хочете видалити видавця "${publisher.name}"?`)) {
-                            deletePublisher.mutate(publisher.id);
-                          }
-                        }}
-                        className="text-red-600 hover:text-red-800 hover:underline text-sm font-medium transition-colors"
-                      >
-                        Видалити
-                      </button>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full whitespace-nowrap">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th 
+                      onClick={() => handleSort('name')}
+                      className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none"
+                    >
+                      Назва {sortConfig?.key === 'name' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th 
+                      onClick={() => handleSort('address')}
+                      className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none"
+                    >
+                      Адреса {sortConfig?.key === 'address' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </th>
+                    <th 
+                      onClick={() => handleSort('contact')}
+                      className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none"
+                    >
+                      Контакт {sortConfig?.key === 'contact' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </th>
+                    
+                    {/* Заголовок Дій - ПРИХОВАНИЙ ДЛЯ ЧИТАЧА */}
+                    {!isReader && (
+                      <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        Дії
+                      </th>
+                    )}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {processedPublishers.map((publisher) => (
+                    <tr 
+                      key={publisher.id} 
+                      className="hover:bg-blue-50/50 transition-colors group"
+                    >
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-800">
+                        {publisher.name}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600">
+                        {publisher.address || <span className="text-slate-400">-</span>}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600">
+                        {publisher.contact || <span className="text-slate-400">-</span>}
+                      </td>
+                      
+                      {/* Кнопки Дій - ПРИХОВАНІ ДЛЯ ЧИТАЧА */}
+                      {!isReader && (
+                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-3 opacity-80 group-hover:opacity-100 transition-opacity">
+                            <Link 
+                              to="/publishers/$publisherId"
+                              params={{ publisherId: publisher.id.toString() }}
+                              className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
+                            >
+                              Редагувати
+                            </Link>
+                            <button 
+                              onClick={() => {
+                                if (window.confirm(`Ви впевнені, що хочете видалити видавця "${publisher.name}"?`)) {
+                                  deletePublisher.mutate(publisher.id);
+                                }
+                              }}
+                              className="text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-100 px-3 py-1.5 rounded-lg transition-colors"
+                            >
+                              Видалити
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
-            <div className="p-8 text-center text-gray-600">
-              <p className="text-lg">
-                {searchQuery ? 'За вашим запитом нічого не знайдено' : 'Видавців не знайдено'}
+            <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+              <span className="text-4xl mb-3">🏢</span>
+              <p className="text-lg font-medium">
+                {searchQuery ? 'За вашим запитом нічого не знайдено' : 'Список видавців порожній'}
               </p>
             </div>
           )}
