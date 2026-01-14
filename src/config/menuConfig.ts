@@ -22,27 +22,11 @@ export const MENU_CONFIG: MenuGroup[] = [
     description: 'Ваш простір',
     items: [
       { 
-        label: 'Мої книги', 
-        to: '/my-books', // Не забудь створити цей роут або заглушку
-        icon: '📚', 
-        desc: 'Книги, які ви читаєте зараз', 
-        color: 'bg-blue-50 text-blue-600', 
-        allowedRoles: ['READER'] 
-      },
-      { 
         label: 'Історія', 
-        to: '/history', 
+        to: '/my-history', 
         icon: '📜', 
         desc: 'Історія ваших запозичень', 
         color: 'bg-purple-50 text-purple-600', 
-        allowedRoles: ['READER'] 
-      },
-      { 
-        label: 'Обране', 
-        to: '/favorites', 
-        icon: '❤️', 
-        desc: 'Збережені книги', 
-        color: 'bg-red-50 text-red-600', 
         allowedRoles: ['READER'] 
       },
     ]
@@ -53,7 +37,7 @@ export const MENU_CONFIG: MenuGroup[] = [
     title: 'Каталог',
     description: 'Основні бібліотечні фонди та довідники',
     items: [
-      { label: 'Книги', to: '/books', icon: '📖', desc: 'Загальний список творів', color: 'bg-blue-50 text-blue-600' }, // allowedRoles: undefined = всім
+      { label: 'Книги', to: '/books', icon: '📖', desc: 'Загальний список творів', color: 'bg-blue-50 text-blue-600' }, 
       { label: 'Видання', to: '/editions', icon: '📠', desc: 'Конкретні видання та тиражі', color: 'bg-indigo-50 text-indigo-600' },
       { label: 'Автори', to: '/authors', icon: '✍️', desc: 'База письменників', color: 'bg-violet-50 text-violet-600' },
       { label: 'Жанри', to: '/genres', icon: '🏷️', desc: 'Класифікація жанрів', color: 'bg-pink-50 text-pink-600' },
@@ -84,11 +68,27 @@ export const MENU_CONFIG: MenuGroup[] = [
   },
   {
     title: 'Адміністрування',
-    description: 'Управління користувачами системи',
+    description: 'Управління персоналом та відвідувачами',
     items: [
       { label: 'Читачі', to: '/readers', icon: '👥', desc: 'Картотека відвідувачів', color: 'bg-fuchsia-50 text-fuchsia-600', allowedRoles: ['ADMINISTRATOR', 'LIBRARIAN'] },
       { label: 'Працівники', to: '/employees', icon: '💼', desc: 'Штат бібліотеки', color: 'bg-purple-50 text-purple-600', allowedRoles: ['ADMINISTRATOR'] },
       { label: 'Посади', to: '/positions', icon: '📛', desc: 'Штатний розклад', color: 'bg-slate-100 text-slate-600', allowedRoles: ['ADMINISTRATOR'] },
+    ]
+  },
+
+  // 4. НОВА СЕКЦІЯ: Система (Тільки для Адміна)
+  {
+    title: 'Система',
+    description: 'Технічне налаштування та безпека',
+    items: [
+      { 
+        label: 'Користувачі', 
+        to: '/users', 
+        icon: '🛡️', 
+        desc: 'Облікові записи та ролі доступу', 
+        color: 'bg-violet-50 text-violet-600', 
+        allowedRoles: ['ADMINISTRATOR'] 
+      }
     ]
   }
 ];

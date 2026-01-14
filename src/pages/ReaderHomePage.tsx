@@ -1,18 +1,29 @@
-import { useState } from 'react';
-import { useNavigate, Link } from '@tanstack/react-router'; 
+import { useState, useEffect, useMemo } from 'react';
 import { useGenres } from '@/features/genres/api';
 import { useCatalog } from '@/features/catalog/api';
 
 export const ReaderHomePage = () => {
-  const navigate = useNavigate();
-  const [search, setSearch] = useState('');
+  // 1. Стейт для інпуту (миттєве оновлення)
+  const [inputValue, setInputValue] = useState('');
+  // 2. Стейт для запиту (із затримкою)
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   
-  // Отримуємо дані
-  const { data: books = [], isLoading: isBooksLoading } = useCatalog(search);
+  const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
+
+  // 3. Debounce ефект: оновлюємо пошук тільки коли користувач перестає друкувати
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(inputValue);
+    }, 500); // 500ms затримка
+
+    return () => clearTimeout(timer);
+  }, [inputValue]);
+
+  // Запит до API йде з debounced значенням
+  const { data: books = [], isLoading: isBooksLoading } = useCatalog(debouncedSearch);
   const { data: genres = [], isLoading: isGenresLoading } = useGenres();
 
-  // Локальна фільтрація за жанрами
-  const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
+  const isLoading = isBooksLoading || isGenresLoading;
 
   const toggleGenre = (id: number) => {
     setSelectedGenres(prev => 
@@ -20,71 +31,82 @@ export const ReaderHomePage = () => {
     );
   };
 
-  // Фільтрація книг на клієнті (оскільки API повертає назву жанру, а ми фільтруємо по ID для зручності UI)
-  const filteredBooks = books.filter(book => {
-    if (selectedGenres.length === 0) return true;
-    const selectedGenreNames = genres
-       .filter(g => selectedGenres.includes(g.id))
-       .map(g => g.name);
-    return selectedGenreNames.includes(book.genre);
-  });
+  const filteredBooks = useMemo(() => {
+    return books.filter(book => {
+        if (selectedGenres.length === 0) return true;
+        const selectedGenreNames = genres
+           .filter(g => selectedGenres.includes(g.id))
+           .map(g => g.name);
+        return selectedGenreNames.includes(book.genre);
+      });
+  }, [books, genres, selectedGenres]);
 
-  const isLoading = isBooksLoading || isGenresLoading;
-  
-  // Показуємо перші 6 жанрів, решту ховаємо (або можна розгорнути)
   const displayedGenres = genres.slice(0, 10); 
 
-  return (
-    <div className="space-y-10 pb-10">
-      
-      {/* HERO SECTION */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-200">
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('/pattern-bg.svg')] opacity-10"></div>
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-white opacity-10 rounded-full blur-3xl"></div>
-        
-        <div className="relative z-10 p-10 md:p-16 text-center space-y-8">
-          <div className="space-y-4">
-            <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
-              Бібліотека знань
-            </h1>
-            <p className="text-lg md:text-xl text-blue-100 max-w-2xl mx-auto">
-              Шукайте книги, перевіряйте наявність та відкривайте для себе нові історії.
-            </p>
-          </div>
+  // Функція для кольору статусу (замість тексту)
+  const getStatusIndicator = (isAvailable: boolean) => {
+      if (isAvailable) return 'bg-emerald-500 shadow-emerald-200';
+      return 'bg-amber-500 shadow-amber-200';
+  };
 
-          <div className="max-w-2xl mx-auto relative group">
-            <input
-              type="text"
-              placeholder="Введіть назву книги, автора або ISBN..."
-              className="w-full pl-14 pr-6 py-5 rounded-2xl text-slate-800 bg-white/95 backdrop-blur shadow-2xl border-2 border-transparent focus:border-blue-300 focus:outline-none transition-all text-lg placeholder:text-slate-400"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-2xl text-slate-400 group-focus-within:text-blue-500 transition-colors">🔍</span>
-          </div>
+  return (
+    <div className="space-y-10 pb-20 animate-fade-in">
+      
+      {/* 1. HEADER SECTION (Clean & Stable) */}
+      <div className="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
+        {/* Decorative background blob */}
+        <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+        
+        <div className="relative z-10 max-w-3xl">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800 tracking-tight mb-3">
+              Бібліотечний каталог
+            </h1>
+            <p className="text-slate-500 text-lg mb-8">
+              Шукайте книги, перевіряйте наявність та знаходьте натхнення.
+            </p>
+
+            {/* Search Bar */}
+            <div className="relative group max-w-2xl">
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                    <svg className={`w-6 h-6 transition-colors duration-300 ${isBooksLoading ? 'text-blue-500 animate-spin' : 'text-slate-400 group-focus-within:text-blue-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        {isBooksLoading 
+                            ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        }
+                    </svg>
+                </div>
+                <input
+                    type="text"
+                    placeholder="Введіть назву книги, автора або рік..."
+                    className="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-transparent text-slate-800 rounded-2xl focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all text-lg placeholder:text-slate-400 font-medium shadow-inner"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                />
+            </div>
         </div>
       </div>
 
-      {/* GENRES FILTER */}
+      {/* 2. GENRES (Clean Pills) */}
       <div className="space-y-4">
-         <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-800">Популярні жанри</h2>
+         <div className="flex items-center justify-between px-2">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Категорії</h3>
             {selectedGenres.length > 0 && (
                 <button 
                     onClick={() => setSelectedGenres([])}
-                    className="text-sm text-red-500 hover:text-red-700 font-medium"
+                    className="text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline transition-all"
                 >
-                    Скинути фільтри
+                    Очистити фільтр
                 </button>
             )}
          </div>
+         
          <div className="flex flex-wrap gap-2">
             <button 
                 onClick={() => setSelectedGenres([])} 
-                className={`px-5 py-2.5 rounded-xl text-sm font-bold border transition-all active:scale-95 ${
+                className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all duration-200 active:scale-95 ${
                     selectedGenres.length === 0 
                     ? 'bg-slate-800 text-white border-slate-800 shadow-md' 
-                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
             >
                 Всі
@@ -93,10 +115,10 @@ export const ReaderHomePage = () => {
                 <button 
                     key={g.id} 
                     onClick={() => toggleGenre(g.id)} 
-                    className={`px-5 py-2.5 rounded-xl text-sm font-bold border transition-all active:scale-95 ${
+                    className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all duration-200 active:scale-95 ${
                         selectedGenres.includes(g.id) 
                         ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-200' 
-                        : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-700'
                     }`}
                 >
                     {g.name}
@@ -105,95 +127,91 @@ export const ReaderHomePage = () => {
          </div>
       </div>
 
-      {/* BOOKS GRID */}
-      <div className="space-y-6">
-        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <span>📚</span> Результати пошуку
-            <span className="text-sm font-normal text-slate-400 ml-2 bg-slate-100 px-2 py-0.5 rounded-full">{filteredBooks.length}</span>
-        </h2>
-
-        {isLoading ? (
-           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[1,2,3,4,5,6,7,8].map(i => (
-                  <div key={i} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-4">
-                      <div className="h-48 bg-slate-100 rounded-xl animate-pulse"></div>
+      {/* 3. CONTENT GRID */}
+      <div>
+        {isLoading && filteredBooks.length === 0 ? (
+           // Skeleton Loading (Stable height)
+           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                  <div key={i} className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm h-[320px] flex flex-col gap-4">
+                      <div className="flex-1 bg-slate-100/70 rounded-xl animate-pulse w-full"></div>
                       <div className="h-4 bg-slate-100 rounded w-3/4 animate-pulse"></div>
                       <div className="h-3 bg-slate-100 rounded w-1/2 animate-pulse"></div>
                   </div>
               ))}
            </div>
         ) : filteredBooks.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in-up">
+          // Results Grid
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredBooks.map((book) => (
-              <div key={book.id} className="group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all duration-300 overflow-hidden flex flex-col h-full">
-                
-                {/* Book Cover Placeholder */}
-                <div className="h-56 bg-slate-50 flex items-center justify-center text-7xl group-hover:scale-105 transition-transform duration-500 relative select-none border-b border-slate-100">
-                   <span className="drop-shadow-lg filter">📕</span>
-                   {book.isAvailable ? (
-                       <div className="absolute top-3 right-3 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-lg border border-green-200 shadow-sm">
-                           В НАЯВНОСТІ
-                       </div>
-                   ) : (
-                       <div className="absolute top-3 right-3 bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-1 rounded-lg border border-orange-200 shadow-sm">
-                           ВИДАНО
-                       </div>
-                   )}
-                </div>
-                
-                <div className="p-5 flex-1 flex flex-col">
-                  {/* Category & Genre */}
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
-                        {book.genre}
-                    </span>
-                  </div>
+              <div 
+                key={book.id} 
+                className="group bg-white rounded-2xl border border-slate-200 hover:border-blue-300 hover:shadow-xl hover:shadow-blue-900/5 transition-all duration-300 flex flex-col h-full overflow-hidden relative cursor-default"
+              >
+                {/* Status Indicator Bar */}
+                <div className={`absolute top-0 left-0 right-0 h-1.5 ${book.isAvailable ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
+
+                {/* Content */}
+                <div className="p-6 flex-1 flex flex-col">
                   
+                  {/* Header: Year & Genre */}
+                  <div className="flex justify-between items-start mb-4">
+                     <span className="inline-flex items-center px-2 py-1 rounded-md bg-slate-50 text-xs font-bold text-slate-500 border border-slate-100">
+                        {book.year}
+                     </span>
+                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right max-w-[50%] truncate">
+                        {book.genre}
+                     </span>
+                  </div>
+
                   {/* Title */}
-                  <h3 className="text-lg font-bold text-slate-800 leading-tight mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                  <h3 className="text-lg font-bold text-slate-800 leading-snug mb-2 group-hover:text-blue-700 transition-colors line-clamp-2" title={book.title}>
                     {book.title}
                   </h3>
                   
-                  {/* Authors */}
-                  <p className="text-sm text-slate-500 mb-4 line-clamp-1 flex items-center gap-1">
-                      <span>✍️</span>
-                      {book.authors.length > 0 ? book.authors.join(', ') : 'Невідомий автор'}
-                  </p>
-                  
-                  {/* Footer Info */}
-                  <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-                      <div className="flex items-center gap-1">
-                          <span>🏢</span> {book.publisher}
-                      </div>
-                      <div className="font-mono bg-slate-100 px-1.5 py-0.5 rounded">
-                          {book.year}
-                      </div>
+                  {/* Author */}
+                  <div className="flex items-center gap-2 mb-6">
+                    <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] text-slate-500">
+                        ✍️
+                    </div>
+                    <p className="text-sm font-medium text-slate-500 truncate">
+                        {book.authors.length > 0 ? book.authors.join(', ') : 'Автор не вказаний'}
+                    </p>
                   </div>
-
-                  <div className="mt-4">
-                    <Link 
-                        to={`/editions/${book.id}`}
-                        className="flex items-center justify-center w-full py-2.5 rounded-xl bg-slate-50 text-slate-700 font-semibold text-sm hover:bg-blue-600 hover:text-white transition-all active:scale-95 group-hover:bg-blue-50 group-hover:text-blue-700"
-                    >
-                      Детальніше
-                    </Link>
+                  
+                  {/* Footer: Publisher & Availability */}
+                  <div className="mt-auto pt-4 border-t border-slate-50 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-400 max-w-[60%]">
+                          <span className="truncate" title={book.publisher}>{book.publisher}</span>
+                      </div>
+                      
+                      {/* Availability Badge */}
+                      <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full ${book.isAvailable ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full shadow-sm ${getStatusIndicator(book.isAvailable)}`}></span>
+                          <span className="text-[10px] font-bold uppercase tracking-wide">
+                              {book.isAvailable ? 'В наявності' : 'Видано'}
+                          </span>
+                      </div>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border border-dashed border-slate-200 text-center">
-            <span className="text-6xl mb-4 opacity-50">🔍</span>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">Нічого не знайдено</h3>
-            <p className="text-slate-500 max-w-sm">
-              Спробуйте змінити пошуковий запит або очистити фільтри жанрів.
+          // Empty State (Stable Layout)
+          <div className="flex flex-col items-center justify-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm text-3xl text-slate-300">
+                📚
+            </div>
+            <h3 className="text-lg font-bold text-slate-700 mb-1">Книг не знайдено</h3>
+            <p className="text-slate-400 text-sm mb-6 max-w-xs text-center">
+              Спробуйте інший запит або змініть фільтри.
             </p>
             <button 
-                onClick={() => { setSearch(''); setSelectedGenres([]); }}
-                className="mt-6 text-blue-600 font-semibold hover:underline"
+                onClick={() => { setInputValue(''); setSelectedGenres([]); }}
+                className="px-5 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-100 hover:text-slate-800 transition-colors"
             >
-                Очистити все
+                Показати всі книги
             </button>
           </div>
         )}

@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from '@tanstack/react-router';
 import { useReader, useUpdateReader } from '../api';
+import { useUsers } from '../../users/api';
+import { useAuthStore } from '@/store/authStore';
 import type { IReaderPayload, IReader } from '../types';
 
 export const EditReaderPage = () => {
@@ -8,7 +10,12 @@ export const EditReaderPage = () => {
   const navigate = useNavigate();
   const id = Number(readerId);
 
+  const { user: currentUser } = useAuthStore();
+  const isAdmin = currentUser?.role === 'ADMINISTRATOR';
+
   const { data: reader, isLoading } = useReader(id);
+  const { data: usersList } = useUsers({ enabled: isAdmin }); 
+  
   const updateReader = useUpdateReader();
 
   const [formData, setFormData] = useState({
@@ -19,7 +26,31 @@ export const EditReaderPage = () => {
     address: '',
   });
 
+  const [userId, setUserId] = useState<string>('');
   const [formErrors, setFormErrors] = useState<string | null>(null);
+
+  // Фільтрація користувачів
+  const availableUsers = useMemo(() => {
+    if (!usersList || !reader) return [];
+    
+    const currentLinkedUserId = reader.id_user;
+
+    return usersList.filter((u: any) => {
+        // Якщо це ТОЙ САМИЙ юзер, що вже прив'язаний до цього читача -> показуємо його
+        // (навіть якщо у нього дивна роль, ми не маємо права її ховати при редагуванні)
+        if (u.id === currentLinkedUserId) return true;
+
+        // В іншому випадку застосовуємо фільтри:
+        if (u.reader) return false; // Зайнятий іншим читачем
+        
+        // СУВОРА ФІЛЬТРАЦІЯ: Тільки роль 'READER'
+        if (u.role !== 'READER') return false; 
+        
+        if (u.employee) return false;
+
+        return true;
+    });
+  }, [usersList, reader]);
 
   useEffect(() => {
     if (reader) {
@@ -30,6 +61,14 @@ export const EditReaderPage = () => {
         contact: reader.contact || '',
         address: reader.address || '',
       });
+
+      if (reader.user?.id) {
+          setUserId(String(reader.user.id));
+      } else if (reader.id_user) {
+          setUserId(String(reader.id_user));
+      } else {
+          setUserId('');
+      }
     }
   }, [reader]);
 
@@ -48,6 +87,7 @@ export const EditReaderPage = () => {
       patronymic: formData.patronymic.trim() || null,
       contact: formData.contact.trim(),
       address: formData.address.trim(),
+      ...(isAdmin ? { id_user: userId ? Number(userId) : null } : {})
     };
 
     updateReader.mutate({
@@ -75,8 +115,6 @@ export const EditReaderPage = () => {
   return (
     <div className="min-h-screen bg-gray-50/50 p-6 md:p-10 flex justify-center">
       <div className="w-full max-w-3xl">
-        
-        {/* Header */}
         <div className="flex items-center gap-4 mb-8">
            <Link to="/readers" className="w-10 h-10 flex items-center justify-center bg-white rounded-xl shadow-sm border border-slate-200 text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all">
              ←
@@ -92,9 +130,7 @@ export const EditReaderPage = () => {
            </div>
         </div>
 
-        {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden p-6 md:p-8">
-
           {formErrors && (
             <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl flex items-center gap-3">
               <span className="text-xl">⚠️</span>
@@ -103,13 +139,34 @@ export const EditReaderPage = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-8">
-            
-            {/* Особисті дані */}
+            {isAdmin && (
+                <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100 space-y-3">
+                    <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl">🔐</span>
+                        <h3 className="font-bold text-blue-900">Прив'язка до акаунту</h3>
+                    </div>
+                    <div className="relative">
+                        <select
+                            value={userId}
+                            onChange={(e) => setUserId(e.target.value)}
+                            className="w-full px-4 py-3 bg-white rounded-xl border border-blue-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none cursor-pointer text-blue-900 font-medium"
+                        >
+                            <option value="">-- Без прив'язки --</option>
+                            {availableUsers.map((u: any) => (
+                                <option key={u.id} value={u.id}>
+                                    {u.email} ({u.username})
+                                </option>
+                            ))}
+                        </select>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-blue-400">▼</div>
+                    </div>
+                </div>
+            )}
+
             <div className="space-y-6">
                 <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 pb-2 border-b border-slate-100">
                     <span>👤</span> Особисті дані
                 </h2>
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">Ім'я <span className="text-red-500">*</span></label>
@@ -121,7 +178,6 @@ export const EditReaderPage = () => {
                             required
                         />
                     </div>
-
                     <div>
                         <label className="block text-sm font-bold text-slate-700 mb-2">Прізвище <span className="text-red-500">*</span></label>
                         <input
@@ -133,7 +189,6 @@ export const EditReaderPage = () => {
                         />
                     </div>
                 </div>
-
                 <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">По-батькові</label>
                     <input
@@ -145,12 +200,10 @@ export const EditReaderPage = () => {
                 </div>
             </div>
 
-            {/* Контакти */}
             <div className="space-y-6">
                 <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 pb-2 border-b border-slate-100">
                     <span>📞</span> Контактна інформація
                 </h2>
-
                 <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Контакт (Телефон / Email)</label>
                     <input
@@ -160,7 +213,6 @@ export const EditReaderPage = () => {
                         className="w-full px-4 py-3 bg-white rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder:text-slate-400 font-medium"
                     />
                 </div>
-
                 <div>
                     <label className="block text-sm font-bold text-slate-700 mb-2">Адреса проживання</label>
                     <textarea
@@ -172,20 +224,11 @@ export const EditReaderPage = () => {
                 </div>
             </div>
 
-            {/* Buttons */}
             <div className="flex gap-4 pt-4 border-t border-slate-100">
-              <button 
-                type="button" 
-                onClick={() => navigate({ to: '/readers' })} 
-                className="flex-1 px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 hover:text-slate-800 transition-all"
-              >
+              <button type="button" onClick={() => navigate({ to: '/readers' })} className="flex-1 px-6 py-3.5 rounded-xl border border-slate-200 text-slate-600 font-semibold hover:bg-slate-50 hover:text-slate-800 transition-all">
                 Скасувати
               </button>
-              <button 
-                type="submit" 
-                disabled={updateReader.isPending}
-                className="flex-1 px-6 py-3.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 active:scale-95 shadow-lg shadow-blue-200 transition-all disabled:opacity-70 disabled:pointer-events-none"
-              >
+              <button type="submit" disabled={updateReader.isPending} className="flex-1 px-6 py-3.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 active:scale-95 shadow-lg shadow-blue-200 transition-all disabled:opacity-70 disabled:pointer-events-none">
                 {updateReader.isPending ? 'Збереження...' : 'Зберегти зміни'}
               </button>
             </div>

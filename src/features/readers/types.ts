@@ -1,3 +1,5 @@
+import { IUser } from '../users/types';
+
 export interface IReader {
   id: number;
   fullName: string;
@@ -6,6 +8,9 @@ export interface IReader {
   patronymic: string | null;
   contact: string;
   address: string;
+
+  user?: IUser | null;
+  id_user?: number | null;
 }
 
 export interface IReaderPayload {
@@ -14,4 +19,6 @@ export interface IReaderPayload {
   patronymic?: string | null;
   contact: string;
   address: string;
+
+  id_user?: number | null;
 }

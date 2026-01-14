@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 
 export const LendingsListPage = () => {
   // 1. Отримуємо роль
-  const role = useAuthStore((state) => state.role);
+  const role = useAuthStore((state) => state.user?.role);
   const isReader = role === 'READER';
 
   const { data: lendings, isLoading, error } = useLendings();

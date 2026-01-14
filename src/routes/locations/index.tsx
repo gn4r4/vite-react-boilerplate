@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 export const Route = createFileRoute('/locations/')({
   component: LocationListPage,
   beforeLoad: () => {
-    const role = useAuthStore.getState().role;
+    const role = useAuthStore.getState().user?.role;
     if (role != 'ADMINISTRATOR' && role != 'RESTORER') {
       throw redirect({ to: '/' });
     }

@@ -5,22 +5,19 @@ import { IReader } from '../types';
 import { useAuthStore } from '@/store/authStore';
 
 export const ReaderListPage = () => {
-  // 1. Отримуємо роль
-  const role = useAuthStore((state) => state.role);
-  const isReader = role === 'READER';
+  const role = useAuthStore((state) => state.user?.role);
+  const isReaderRole = role === 'READER'; 
 
   const { data: readers, isLoading, error } = useReaders();
   const deleteReader = useDeleteReader();
 
-  // Стейт для пошуку та сортування
   const [searchQuery, setSearchQuery] = useState('');
   const [sortConfig, setSortConfig] = useState<{ 
-    key: keyof IReader; 
+    key: keyof IReader | 'user'; 
     direction: 'asc' | 'desc' 
   } | null>(null);
 
-  // Обробник сортування
-  const handleSort = (key: keyof IReader) => {
+  const handleSort = (key: keyof IReader | 'user') => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
       direction = 'desc';
@@ -28,34 +25,39 @@ export const ReaderListPage = () => {
     setSortConfig({ key, direction });
   };
 
-  // Мемоізація даних (фільтрація + сортування)
   const processedReaders = useMemo(() => {
     if (!readers) return [];
 
     let result = [...readers];
 
-    // 1. Пошук
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
       result = result.filter((reader) => 
         reader.fullName.toLowerCase().includes(lowerQuery) ||
         reader.contact.toLowerCase().includes(lowerQuery) ||
         reader.address.toLowerCase().includes(lowerQuery) ||
-        reader.id.toString().includes(lowerQuery)
+        reader.id.toString().includes(lowerQuery) ||
+        reader.user?.email.toLowerCase().includes(lowerQuery)
       );
     }
 
-    // 2. Сортування
     if (sortConfig) {
       result.sort((a, b) => {
-        // @ts-ignore
-        const aValue = a[sortConfig.key] ? String(a[sortConfig.key]) : '';
-        // @ts-ignore
-        const bValue = b[sortConfig.key] ? String(b[sortConfig.key]) : '';
+        let aValue = '';
+        let bValue = '';
+
+        if (sortConfig.key === 'user') {
+            aValue = a.user?.email || '';
+            bValue = b.user?.email || '';
+        } else {
+            // @ts-ignore
+            aValue = a[sortConfig.key] ? String(a[sortConfig.key]) : '';
+            // @ts-ignore
+            bValue = b[sortConfig.key] ? String(b[sortConfig.key]) : '';
+        }
 
         if (aValue === bValue) return 0;
 
-        // Сортування чисел (ID)
         if (sortConfig.key === 'id') {
             return sortConfig.direction === 'asc' 
                 ? Number(aValue) - Number(bValue) 
@@ -95,7 +97,6 @@ export const ReaderListPage = () => {
     <div className="min-h-screen bg-gray-50/50 p-6 md:p-10">
       <div className="max-w-7xl mx-auto space-y-6">
         
-        {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Читачі</h1>
@@ -104,8 +105,7 @@ export const ReaderListPage = () => {
             </p>
           </div>
           
-          {/* Кнопка додавання - ПРИХОВАНА ДЛЯ ЧИТАЧА */}
-          {!isReader && (
+          {!isReaderRole && (
             <Link 
               to="/readers/new" 
               className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-200 font-medium"
@@ -115,48 +115,42 @@ export const ReaderListPage = () => {
           )}
         </div>
 
-        {/* Search Bar */}
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
             🔍
           </div>
           <input
             type="text"
-            placeholder="Пошук за ім'ям, контактами, адресою або ID..."
+            placeholder="Пошук за ім'ям, контактами, адресою, email або ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-11 pr-4 py-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-700 placeholder:text-slate-400"
           />
         </div>
 
-        {/* Table Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           {processedReaders.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full whitespace-nowrap">
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th 
-                      onClick={() => handleSort('fullName')}
-                      className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none"
-                    >
+                    <th onClick={() => handleSort('fullName')} className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none">
                       ПІБ {sortConfig?.key === 'fullName' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                     </th>
-                    <th 
-                      onClick={() => handleSort('contact')}
-                      className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none"
-                    >
+                    <th onClick={() => handleSort('contact')} className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none">
                       Контакт {sortConfig?.key === 'contact' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                     </th>
-                    <th 
-                      onClick={() => handleSort('address')}
-                      className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none"
-                    >
+                    <th onClick={() => handleSort('address')} className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none">
                       Адреса {sortConfig?.key === 'address' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                     </th>
                     
-                    {/* Заголовок Дій - ПРИХОВАНИЙ ДЛЯ ЧИТАЧА */}
-                    {!isReader && (
+                    {!isReaderRole && (
+                        <th onClick={() => handleSort('user')} className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none">
+                        Акаунт {sortConfig?.key === 'user' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                        </th>
+                    )}
+                    
+                    {!isReaderRole && (
                       <th className="px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">
                         Дії
                       </th>
@@ -165,10 +159,7 @@ export const ReaderListPage = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {processedReaders.map((reader) => (
-                    <tr 
-                      key={reader.id} 
-                      className="hover:bg-blue-50/50 transition-colors group"
-                    >
+                    <tr key={reader.id} className="hover:bg-blue-50/50 transition-colors group">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 text-sm">
@@ -176,7 +167,7 @@ export const ReaderListPage = () => {
                           </div>
                           <div className="flex flex-col">
                             <span className="font-semibold text-slate-800">{reader.fullName}</span>
-                            {!isReader && <span className="text-[10px] text-slate-400">ID: #{reader.id}</span>}
+                            {!isReaderRole && <span className="text-[10px] text-slate-400">ID: #{reader.id}</span>}
                           </div>
                         </div>
                       </td>
@@ -185,16 +176,31 @@ export const ReaderListPage = () => {
                           <span className="bg-slate-50 px-2 py-1 rounded border border-slate-200 text-xs font-mono">
                             {reader.contact}
                           </span>
-                        ) : (
-                          <span className="text-slate-400 italic">-</span>
-                        )}
+                        ) : <span className="text-slate-400 italic">-</span>}
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600">
                         {reader.address || <span className="text-slate-400 italic">-</span>}
                       </td>
                       
-                      {/* Кнопки Дій - ПРИХОВАНІ ДЛЯ ЧИТАЧА */}
-                      {!isReader && (
+                      {!isReaderRole && (
+                        <td className="px-6 py-4 text-sm">
+                            {reader.user ? (
+                                <div className="flex flex-col">
+                                    <span className="text-slate-800 font-medium">{reader.user.username}</span>
+                                    <span className="text-xs text-slate-400">{reader.user.email}</span>
+                                </div>
+                            ) : reader.id_user ? (
+                                <div className="flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-1 rounded w-fit border border-amber-100">
+                                    <span className="text-xs font-bold">⚠️ Помилка</span>
+                                    <span className="text-[10px] opacity-75">(Дані акаунта недоступні)</span>
+                                </div>
+                            ) : (
+                                <span className="text-slate-400 text-xs italic bg-slate-50 px-2 py-1 rounded">Не прив'язано</span>
+                            )}
+                        </td>
+                      )}
+                      
+                      {!isReaderRole && (
                         <td className="px-6 py-4 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-3 opacity-80 group-hover:opacity-100 transition-opacity">
                             <Link 

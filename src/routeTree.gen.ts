@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as MyHistoryRouteImport } from './routes/my-history'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UsersIndexRouteImport } from './routes/users/index'
@@ -62,6 +64,16 @@ import { Route as BooksBookIdRouteImport } from './routes/books/$bookId'
 import { Route as AuthorsNewRouteImport } from './routes/authors/new'
 import { Route as AuthorsAuthorIdRouteImport } from './routes/authors/$authorId'
 
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyHistoryRoute = MyHistoryRouteImport.update({
+  id: '/my-history',
+  path: '/my-history',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -326,6 +338,8 @@ const AuthorsAuthorIdRoute = AuthorsAuthorIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/my-history': typeof MyHistoryRoute
+  '/register': typeof RegisterRoute
   '/authors/$authorId': typeof AuthorsAuthorIdRoute
   '/authors/new': typeof AuthorsNewRoute
   '/books/$bookId': typeof BooksBookIdRoute
@@ -380,6 +394,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/my-history': typeof MyHistoryRoute
+  '/register': typeof RegisterRoute
   '/authors/$authorId': typeof AuthorsAuthorIdRoute
   '/authors/new': typeof AuthorsNewRoute
   '/books/$bookId': typeof BooksBookIdRoute
@@ -435,6 +451,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/my-history': typeof MyHistoryRoute
+  '/register': typeof RegisterRoute
   '/authors/$authorId': typeof AuthorsAuthorIdRoute
   '/authors/new': typeof AuthorsNewRoute
   '/books/$bookId': typeof BooksBookIdRoute
@@ -491,6 +509,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/my-history'
+    | '/register'
     | '/authors/$authorId'
     | '/authors/new'
     | '/books/$bookId'
@@ -545,6 +565,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/my-history'
+    | '/register'
     | '/authors/$authorId'
     | '/authors/new'
     | '/books/$bookId'
@@ -599,6 +621,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/login'
+    | '/my-history'
+    | '/register'
     | '/authors/$authorId'
     | '/authors/new'
     | '/books/$bookId'
@@ -654,6 +678,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  MyHistoryRoute: typeof MyHistoryRoute
+  RegisterRoute: typeof RegisterRoute
   AuthorsAuthorIdRoute: typeof AuthorsAuthorIdRoute
   AuthorsNewRoute: typeof AuthorsNewRoute
   BooksBookIdRoute: typeof BooksBookIdRoute
@@ -708,6 +734,20 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-history': {
+      id: '/my-history'
+      path: '/my-history'
+      fullPath: '/my-history'
+      preLoaderRoute: typeof MyHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -1078,6 +1118,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  MyHistoryRoute: MyHistoryRoute,
+  RegisterRoute: RegisterRoute,
   AuthorsAuthorIdRoute: AuthorsAuthorIdRoute,
   AuthorsNewRoute: AuthorsNewRoute,
   BooksBookIdRoute: BooksBookIdRoute,

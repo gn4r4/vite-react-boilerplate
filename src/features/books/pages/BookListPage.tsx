@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
 import { Link } from '@tanstack/react-router';
-import { useBooks, useDeleteBook } from '../api'; //
-import { IBook } from './types'; //
-import { useAuthStore } from '@/store/authStore'; // Імпортуємо стор авторизації
+import { useBooks, useDeleteBook } from '../api'; 
+import { IBook } from '../types';
+import { useAuthStore } from '@/store/authStore';
 
 export const BooksListPage = () => {
   // 1. Отримуємо роль
-  const role = useAuthStore((state) => state.role);
+  const role = useAuthStore((state) => state.user?.role);
   const isReader = role === 'READER' || !role;
 
   const { data: books, isLoading, error } = useBooks(); //

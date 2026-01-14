@@ -2,31 +2,16 @@ import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import apiClient from '@/lib/axios';
 import { useAuthStore } from '@/store/authStore';
-import { LoginCredentials, AuthResponse, Role } from './types';
-import { jwtDecode } from 'jwt-decode'; // Імпортуємо бібліотеку
+import { LoginCredentials, RegisterCredentials, AuthResponse } from './types';
 
 const loginUser = async (credentials: LoginCredentials): Promise<AuthResponse> => {
   const response = await apiClient.post('/auth/login', credentials);
-  
-  const rawToken = response.data.data;
-  
-  if (!rawToken || typeof rawToken !== 'string') {
-    throw new Error("Токен не знайдено");
-  }
+  return response.data.data;
+};
 
-  const cleanToken = rawToken.replace('Bearer ', '');
-
-  try {
-    const decoded: any = jwtDecode(cleanToken);
-
-    const roleFromToken = decoded.role;
-    
-    const userRole: Role = roleFromToken ? roleFromToken.toUpperCase() as Role : 'READER';
-
-    return { token: cleanToken, role: userRole };
-  } catch (e) {
-    return { token: cleanToken, role: 'READER' };
-  }
+const registerUser = async (credentials: RegisterCredentials): Promise<any> => {
+  const response = await apiClient.post('/auth/register', credentials);
+  return response.data.data;
 };
 
 export const useLogin = () => {
@@ -35,12 +20,32 @@ export const useLogin = () => {
 
   return useMutation({
     mutationFn: loginUser,
-    onSuccess: (data, variables) => {
-      setAuth(data.token, variables.email, data.role);
+    onSuccess: (data) => {
+
+      const cleanToken = data.token.replace('Bearer ', '');
+
+      setAuth(cleanToken, data.user);
+
       navigate({ to: '/' });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Login failed:', error);
+      alert(error.response?.data?.message || 'Помилка входу');
+    }
+  });
+};
+
+export const useRegister = () => {
+  const navigate = useNavigate();
+
+  return useMutation({
+    mutationFn: registerUser,
+    onSuccess: () => {
+      alert('Акаунт створено! Увійдіть, щоб продовжити.');
+      navigate({ to: '/login' });
+    },
+    onError: (error: any) => {
+      alert(error.response?.data?.message || 'Помилка реєстрації');
     }
   });
 };

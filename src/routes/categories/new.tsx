@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 export const Route = createFileRoute('/categories/new')({
   component: CreateCategoryPage,
   beforeLoad: () => {
-    const role = useAuthStore.getState().role;
+    const role = useAuthStore.getState().user?.role;
     if (role != 'ADMINISTRATOR' && role != 'LIBRARIAN') {
       throw redirect({ to: '/' });
     }

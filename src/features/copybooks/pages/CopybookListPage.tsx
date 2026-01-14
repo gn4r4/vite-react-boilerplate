@@ -5,25 +5,23 @@ import type { ICopybook } from '../types';
 import { useAuthStore } from '@/store/authStore';
 
 export const CopybooksListPage = () => {
-  // Отримуємо роль користувача
-  const role = useAuthStore((state) => state.role);
-  
+  const role = useAuthStore((state) => state.user?.role);
   const isReader = role === 'READER' || !role;
-  
   const canManage = !isReader;
 
   const { data: copybooks, isLoading, error } = useCopybooks();
   const deleteCopybook = useDeleteCopybook();
 
-  // Стейт для пошуку та сортування
   const [searchQuery, setSearchQuery] = useState('');
+  // 1. Додано стейт для фільтру
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  
   const [sortConfig, setSortConfig] = useState<{ 
-    key: 'title' | 'status' | 'location'; 
+    key: 'id' | 'title' | 'year' | 'status' | 'location'; 
     direction: 'asc' | 'desc' 
   } | null>(null);
 
-  // Обробник сортування
-  const handleSort = (key: 'title' | 'status' | 'location') => {
+  const handleSort = (key: 'id' | 'title' | 'year' | 'status' | 'location') => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
       direction = 'desc';
@@ -31,7 +29,6 @@ export const CopybooksListPage = () => {
     setSortConfig({ key, direction });
   };
 
-  // Функція форматування локації
   const formatLocation = (location: ICopybook['location']) => {
     if (!location) return 'Не вказано';
     if (location.shelf) {
@@ -42,7 +39,12 @@ export const CopybooksListPage = () => {
     return 'Не вказано';
   };
 
-  // Хелпер для кольорів статусу
+  const getYear = (dateStr: string | Date | undefined) => {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return isNaN(date.getTime()) ? '-' : date.getFullYear();
+  };
+
   const getStatusColor = (status: string) => {
     const s = status.toLowerCase();
     if (s.includes('доступн')) return 'bg-emerald-100 text-emerald-700 border-emerald-200';
@@ -52,19 +54,31 @@ export const CopybooksListPage = () => {
     return 'bg-slate-100 text-slate-600 border-slate-200';
   };
 
-  // Мемоізація даних
   const processedCopybooks = useMemo(() => {
     if (!copybooks) return [];
 
     let result = [...copybooks];
 
-    // 1. Фільтрація
+    // 2. Логіка фільтрації по статусу
+    if (filterStatus !== 'all') {
+      result = result.filter((copybook) => {
+        const s = copybook.status.toLowerCase();
+        if (filterStatus === 'available') return s.includes('доступн');
+        if (filterStatus === 'borrowed') return s.includes('видан');
+        if (filterStatus === 'restoration') return s.includes('реставр');
+        if (filterStatus === 'lost') return s.includes('списан') || s.includes('втрач');
+        return true;
+      });
+    }
+
+    // 3. Пошук
     if (searchQuery) {
       const lowerQuery = searchQuery.toLowerCase();
       result = result.filter((copybook) => {
         const titleMatch = copybook.edition?.book?.title?.toLowerCase().includes(lowerQuery);
         const statusMatch = copybook.status.toLowerCase().includes(lowerQuery);
         const idMatch = copybook.id.toString().includes(lowerQuery);
+        const yearMatch = getYear(copybook.edition?.yearPublication).toString().includes(lowerQuery);
         
         let locationMatch = false;
         if (copybook.location?.shelf) {
@@ -73,21 +87,27 @@ export const CopybooksListPage = () => {
             locationMatch = shelfCode.includes(lowerQuery) || cabinetName.includes(lowerQuery);
         }
 
-        return titleMatch || statusMatch || idMatch || locationMatch;
+        return titleMatch || statusMatch || idMatch || locationMatch || yearMatch;
       });
     }
 
-    // 2. Сортування
+    // 4. Сортування
     if (sortConfig) {
       result.sort((a, b) => {
         let aValue: string | number = '';
         let bValue: string | number = '';
 
         switch (sortConfig.key) {
+          case 'id':
+            return sortConfig.direction === 'asc' ? a.id - b.id : b.id - a.id;
           case 'title':
             aValue = a.edition?.book?.title || '';
             bValue = b.edition?.book?.title || '';
             break;
+          case 'year':
+            const yearA = a.edition?.yearPublication ? new Date(a.edition.yearPublication).getTime() : 0;
+            const yearB = b.edition?.yearPublication ? new Date(b.edition.yearPublication).getTime() : 0;
+            return sortConfig.direction === 'asc' ? yearA - yearB : yearB - yearA;
           case 'status':
             aValue = a.status;
             bValue = b.status;
@@ -99,13 +119,17 @@ export const CopybooksListPage = () => {
         }
 
         if (aValue === bValue) return 0;
-        const comparison = String(aValue).localeCompare(String(bValue), 'uk');
-        return sortConfig.direction === 'asc' ? comparison : -comparison;
+        
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+            const comparison = aValue.localeCompare(bValue, 'uk');
+            return sortConfig.direction === 'asc' ? comparison : -comparison;
+        }
+        return 0;
       });
     }
 
     return result;
-  }, [copybooks, searchQuery, sortConfig]);
+  }, [copybooks, searchQuery, filterStatus, sortConfig]);
 
   if (isLoading) 
     return (
@@ -151,18 +175,42 @@ export const CopybooksListPage = () => {
           )}
         </div>
 
-        {/* Search Bar */}
-        <div className="relative group">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-500 transition-colors">
-            🔍
-          </div>
-          <input
-            type="text"
-            placeholder="Пошук за назвою, статусом, полицею..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-3.5 bg-white rounded-2xl border border-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-slate-700 placeholder:text-slate-400"
-          />
+        {/* 5. Toolbar (Пошук + Фільтри) */}
+        <div className="flex flex-col md:flex-row gap-4 items-center bg-white p-2 rounded-2xl shadow-sm border border-slate-200">
+            <div className="relative flex-1 w-full">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    🔍
+                </div>
+                <input
+                    type="text"
+                    placeholder="Пошук за ID, назвою, роком, статусом або локацією..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-transparent focus:outline-none text-slate-700 placeholder:text-slate-400"
+                />
+            </div>
+            
+            <div className="flex bg-slate-100 p-1 rounded-xl overflow-x-auto max-w-full">
+                {[
+                    { key: 'all', label: 'Всі' },
+                    { key: 'available', label: 'Доступні' },
+                    { key: 'borrowed', label: 'Видані' },
+                    { key: 'restoration', label: 'Реставрація' },
+                    { key: 'lost', label: 'Списані' },
+                ].map((status) => (
+                    <button
+                        key={status.key}
+                        onClick={() => setFilterStatus(status.key)}
+                        className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                            filterStatus === status.key
+                                ? 'bg-white text-blue-600 shadow-sm'
+                                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                        }`}
+                    >
+                        {status.label}
+                    </button>
+                ))}
+            </div>
         </div>
 
         {/* Table Card */}
@@ -176,8 +224,16 @@ export const CopybooksListPage = () => {
                       onClick={() => handleSort('title')}
                       className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none"
                     >
-                      Книга {sortConfig?.key === 'title' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                      Книга / ID {sortConfig?.key === 'title' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
                     </th>
+                    
+                    <th 
+                      onClick={() => handleSort('year')}
+                      className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none"
+                    >
+                      Рік {sortConfig?.key === 'year' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </th>
+
                     <th 
                       onClick={() => handleSort('status')}
                       className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors select-none"
@@ -209,11 +265,16 @@ export const CopybooksListPage = () => {
                           <span className="font-semibold text-slate-800">
                             {copybook.edition?.book?.title || 'Без назви'}
                           </span>
-                          <span className="text-xs text-slate-500 mt-0.5">
-                            Рік: {copybook.edition?.yearPublication ? new Date(copybook.edition.yearPublication).getFullYear() : '-'}
-                          </span>
+                          <span className="text-[10px] text-slate-400 mt-0.5 font-mono">ID: #{copybook.id}</span>
                         </div>
                       </td>
+                      
+                      <td className="px-6 py-4">
+                        <span className="text-sm font-medium text-slate-600 bg-slate-50 px-2 py-1 rounded border border-slate-100">
+                            {getYear(copybook.edition?.yearPublication)}
+                        </span>
+                      </td>
+
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium border ${getStatusColor(copybook.status)}`}>
                           {copybook.status}
@@ -239,7 +300,7 @@ export const CopybooksListPage = () => {
                               <button 
                                 onClick={() => {
                                   const bookTitle = copybook.edition?.book?.title || 'Книга';
-                                  if (window.confirm(`Видалити копію "${bookTitle}"?`)) {
+                                  if (window.confirm(`Видалити копію "${bookTitle}" (ID: ${copybook.id})?`)) {
                                     deleteCopybook.mutate(copybook.id);
                                   }
                                 }}

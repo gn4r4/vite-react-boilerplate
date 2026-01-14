@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useCabinets, useDeleteCabinet } from '../api';
-import { ICabinet } from './types';
+import { ICabinet } from '../types';
 import { useAuthStore } from '@/store/authStore';
 
 export const CabinetsListPage = () => {
   // 1. Отримуємо роль
-  const role = useAuthStore((state) => state.role);
+  const role = useAuthStore((state) => state.user?.role);
   const isReaderOrLibrarian = role === 'READER' || !role || role === 'LIBRARIAN';
 
   const { data: cabinets, isLoading, error } = useCabinets();

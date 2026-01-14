@@ -14,6 +14,11 @@ const getLendingById = async (id: number): Promise<ILending> => {
   return response.data.data;
 };
 
+const getMyHistory = async (): Promise<ILending[]> => {
+  const response = await apiClient.get('/lendings/my-history');
+  return response.data.data;
+};
+
 // Приймаємо payload напряму
 const createLending = async (payload: ILendingPayload): Promise<ILending> => {
   const response = await apiClient.post('/lendings', payload);
@@ -41,6 +46,11 @@ export const useLending = (id: number) => useQuery({
   queryKey: ['lendings', id], 
   queryFn: () => getLendingById(id),
   enabled: !!id
+});
+
+export const useMyHistory = () => useQuery({ 
+  queryKey: ['my-history'], 
+  queryFn: getMyHistory 
 });
 
 export const useCreateLending = () => {

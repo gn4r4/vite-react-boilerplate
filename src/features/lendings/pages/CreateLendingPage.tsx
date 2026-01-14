@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate, Link } from '@tanstack/react-router';
+import { useAuthStore } from '@/store/authStore';
 import { useCreateLending } from '../api';
 import { useCopybooks } from '../../copybooks/api';
 import { useReaders } from '../../readers/api';
@@ -7,7 +8,6 @@ import { useEmployees } from '../../employees/api';
 import { ILendingPayload } from '../types';
 import { ICopybook } from '../../copybooks/types';
 
-// Helper to get local date string YYYY-MM-DD
 const getLocalDateString = (date = new Date()) => {
   const offset = date.getTimezoneOffset();
   const localDate = new Date(date.getTime() - (offset * 60 * 1000));
@@ -15,9 +15,40 @@ const getLocalDateString = (date = new Date()) => {
 };
 
 export const CreateLendingPage = () => {
+  const { user } = useAuthStore();
+  
+  // 1. Перевірка на адміна
+  const isAdmin = user?.role === 'ADMINISTRATOR';
+
   const [selectedCopybooks, setSelectedCopybooks] = useState<ICopybook[]>([]);
   const [readerId, setReaderId] = useState<string>('');
-  const [employeeId, setEmployeeId] = useState<string>('');
+  
+  // ДОПОМІЖНА ФУНКЦІЯ: безпечно дістаємо ID працівника з об'єкта user
+  // (сервер повертає id_employee, а типи можуть очікувати id)
+  const getEmployeeIdFromUser = (): string => {
+    if (!user?.employee) return '';
+    // @ts-ignore - ігноруємо перевірку типів, бо ми знаємо, що там id_employee
+    const id = user.employee.id_employee || user.employee.id;
+    return id ? String(id) : '';
+  };
+
+  // 2. Ініціалізація стейту
+  const [employeeId, setEmployeeId] = useState<string>(getEmployeeIdFromUser());
+
+  // Ефект для автозаповнення, коли user завантажується
+  useEffect(() => {
+    const currentId = getEmployeeIdFromUser();
+    
+    if (currentId) {
+      if (!isAdmin) {
+        // Бібліотекар: жорстко ставимо його ID
+        setEmployeeId(currentId);
+      } else if (employeeId === '') {
+        // Адмін: ставимо ID, тільки якщо поле ще пусте
+        setEmployeeId(currentId);
+      }
+    }
+  }, [user, isAdmin]); 
   
   const [datePlanned, setDatePlanned] = useState<string>(() => {
     const d = new Date();
@@ -34,9 +65,35 @@ export const CreateLendingPage = () => {
   
   const { data: copybooks, isLoading: isLoadingBooks } = useCopybooks();
   const { data: readers, isLoading: isLoadingReaders } = useReaders();
-  const { data: employees, isLoading: isLoadingEmployees } = useEmployees();
+  
+  // 3. Завантажуємо список усіх працівників ТІЛЬКИ якщо користувач — Адмін
+  const { data: employeesAPI, isLoading: isLoadingEmployeesAPI } = useEmployees({ enabled: isAdmin });
 
-  // Filter available copybooks
+  // 4. Блокуємо поле вибору, якщо не адмін
+  const isEmployeeSelectDisabled = !isAdmin;
+
+  // 5. Формуємо список для відображення в Select
+  const displayEmployees = useMemo(() => {
+    if (isAdmin) {
+      // Адмін бачить список з сервера
+      // Мапимо, щоб гарантувати наявність поля id для select
+      return employeesAPI?.map((emp: any) => ({
+          ...emp,
+          id: emp.id || emp.id_employee // Страхуємося від різних форматів
+      })) || [];
+    } else {
+      // Бібліотекар бачить тільки себе
+      if (user?.employee) {
+        return [{
+          // @ts-ignore - беремо id_employee з JSON
+          id: user.employee.id_employee || user.employee.id, 
+          fullName: `${user.employee.lastname} ${user.employee.firstname} ${user.employee.patronymic || ''}`.trim()
+        }];
+      }
+      return [];
+    }
+  }, [isAdmin, employeesAPI, user]);
+
   const availableCopybooks = useMemo(() => {
     return copybooks
       ?.filter(cb => cb.status === 'доступний')
@@ -45,13 +102,9 @@ export const CreateLendingPage = () => {
 
   const filteredCopybooks = useMemo(() => {
     let list = availableCopybooks;
-
-    // 1. Filter "Selected Only"
     if (showSelectedOnly) {
         list = list.filter(cb => selectedCopybooks.some(sel => sel.id === cb.id));
     }
-
-    // 2. Search Filter
     if (copySearchQuery) {
         const lowerQuery = copySearchQuery.toLowerCase();
         list = list.filter(cb => {
@@ -60,7 +113,6 @@ export const CreateLendingPage = () => {
             return id.includes(lowerQuery) || title.includes(lowerQuery);
         });
     }
-
     return list;
   }, [availableCopybooks, copySearchQuery, showSelectedOnly, selectedCopybooks]);
 
@@ -109,7 +161,7 @@ export const CreateLendingPage = () => {
     });
   };
 
-  const isLoading = isLoadingBooks || isLoadingReaders || isLoadingEmployees;
+  const isLoading = isLoadingBooks || isLoadingReaders || (isAdmin && isLoadingEmployeesAPI);
 
   if (isLoading) return (
     <div className="flex justify-center items-center h-screen bg-gray-50/50">
@@ -174,16 +226,27 @@ export const CreateLendingPage = () => {
                         <label className="block text-sm font-bold text-slate-700 mb-2">Працівник <span className="text-red-500">*</span></label>
                         <div className="relative">
                             <select
-                            value={employeeId}
-                            onChange={(e) => setEmployeeId(e.target.value)}
-                            className="w-full px-4 py-3 bg-white rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none cursor-pointer"
+                                value={employeeId}
+                                onChange={(e) => setEmployeeId(e.target.value)}
+                                disabled={isEmployeeSelectDisabled}
+                                className={`w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all appearance-none
+                                    ${isEmployeeSelectDisabled 
+                                        ? 'bg-slate-100 text-slate-500 cursor-not-allowed' 
+                                        : 'bg-white cursor-pointer'
+                                    }
+                                `}
                             >
-                            <option value="">Оберіть працівника...</option>
-                            {employees?.map((employee) => (
-                                <option key={employee.id} value={employee.id}>{employee.fullName}</option>
-                            ))}
+                                <option value="">Оберіть працівника...</option>
+                                {/* Рендеримо підготовлений список */}
+                                {displayEmployees.map((employee: any) => (
+                                    // Використовуємо employee.id, який ми підготували в useMemo
+                                    <option key={employee.id} value={employee.id}>{employee.fullName}</option>
+                                ))}
                             </select>
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">▼</div>
+                            
+                            {!isEmployeeSelectDisabled && (
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">▼</div>
+                            )}
                         </div>
                     </div>
                 </div>

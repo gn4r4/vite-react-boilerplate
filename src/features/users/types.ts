@@ -1,3 +1,6 @@
+import { IReader } from '../readers/types'; // Проверь правильность пути к типам читателя
+import { IEmployee } from '../employees/types'; // Проверь путь к типам сотрудника
+
 export enum Role {
   ADMINISTRATOR = "ADMINISTRATOR",
   LIBRARIAN = "LIBRARIAN",
@@ -24,4 +27,7 @@ export interface IUser {
   role: Role;
   language: Language;
   createdAt: Date;
+
+  reader?: IReader;
+  employee?: IEmployee;
 }

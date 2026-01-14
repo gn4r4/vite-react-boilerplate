@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 export const Route = createFileRoute('/suppliers/new')({
   component: CreateSupplierPage,
   beforeLoad: () => {
-    const role = useAuthStore.getState().role;
+    const role = useAuthStore.getState().user?.role;
     if (role != 'ADMINISTRATOR' && role != 'LIBRARIAN') {
       throw redirect({ to: '/' });
     }

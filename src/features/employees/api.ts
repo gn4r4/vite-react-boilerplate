@@ -30,9 +30,10 @@ const deleteEmployee = async (id: number): Promise<void> => {
 
 // --- Hooks ---
 
-export const useEmployees = () => useQuery({ 
+export const useEmployees = (options?: { enabled?: boolean }) => useQuery({ 
   queryKey: ['employees'], 
-  queryFn: getEmployees 
+  queryFn: getEmployees,
+  enabled: options?.enabled // Тепер запит піде тільки якщо enabled === true (або undefined)
 });
 
 export const useEmployee = (id: number) => useQuery({ 

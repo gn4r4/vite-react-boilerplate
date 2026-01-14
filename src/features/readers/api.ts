@@ -2,8 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import apiClient from '@/lib/axios';
 import { IReader } from './types';
+import { useAuthStore } from '@/store/authStore';
 
-// --- API Functions ---
 const getReaders = async (): Promise<IReader[]> => {
   const response = await apiClient.get('/readers');
   return response.data.data;
@@ -28,8 +28,6 @@ const deleteReader = async (id: number): Promise<void> => {
   await apiClient.delete(`/readers/${id}`);
 };
 
-// --- Hooks ---
-
 export const useReaders = () => useQuery({ 
   queryKey: ['readers'], 
   queryFn: getReaders 
@@ -51,6 +49,23 @@ export const useCreateReader = () => {
       queryClient.invalidateQueries({ queryKey: ['readers'] });
       navigate({ to: '/readers' });
     },
+  });
+};
+
+export const useCreateMyProfile = () => {
+  const navigate = useNavigate();
+  // Подразумевается, что в сторе есть метод для обновления юзера, 
+  // если нет - можно просто сделать редирект, а данные обновятся при следующем запросе
+  
+  return useMutation({
+    mutationFn: createReader,
+    onSuccess: () => {
+      navigate({ to: '/' });
+      window.location.reload(); // Простой способ обновить стейт юзера
+    },
+    onError: (error: any) => {
+       alert(error.response?.data?.message || 'Помилка створення профілю');
+    }
   });
 };
 

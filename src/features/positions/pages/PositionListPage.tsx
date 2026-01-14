@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 
 export const PositionsListPage = () => {
   // 1. Отримуємо роль
-  const role = useAuthStore((state) => state.role);
+  const role = useAuthStore((state) => state.user?.role);
   const isReader = role === 'READER' || !role;
 
   const { data: positions, isLoading, error } = usePositions();
